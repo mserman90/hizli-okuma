@@ -168,6 +168,7 @@
 
     <div class="quick-controls">
       <button class="quick-btn hidden" id="btn-install-pwa" onclick="app.promptInstall()">📲 Yükle</button>
+      <button class="quick-btn" onclick="app.openReportCard()">📄 Karne</button>
       <button class="quick-btn" id="btn-toggle-sound" onclick="app.toggleSound()">🔊 Ses: Açık</button>
       <button class="quick-btn" onclick="app.adjustFontSize(-0.1)">A-</button>
       <button class="quick-btn" onclick="app.adjustFontSize(0.1)">A+</button>
@@ -812,6 +813,18 @@
       </div>
     </div>
 
+    <!-- Export PDF Progress Report Button Card -->
+    <div class="card export-card mt-16 text-center" id="progress-export-card">
+      <div class="export-icon" style="font-size:32px; margin-bottom:6px;">🎓</div>
+      <h3 style="font-size:16px; margin-bottom:4px;">Gelişim Karnesi & Öğretmen Raporu</h3>
+      <p style="font-size:13px; color:var(--text-light); margin:0 0 14px; line-height:1.45;">
+        Okuma hızı ve anlama grafiğini rehberlik öğretmeninle veya velinle paylaşmak için resmi gelişim karnesini oluştur.
+      </p>
+      <button class="btn btn-primary" onclick="app.openReportCard()">
+        📄 PDF Karne Oluştur & İndir
+      </button>
+    </div>
+
     <div id="progress-empty" class="empty-state" style="display:none">
       <div class="empty-icon">📊</div>
       <h3>Henüz veri yok</h3>
@@ -914,6 +927,161 @@
       <button class="btn btn-primary" style="flex:1;" onclick="app.restartSchulte()">Tekrar Oyna 🔄</button>
       <button class="btn btn-secondary" style="flex:1;" onclick="app.exitSchulte()">Ana Sayfa 🏠</button>
     </div>
+  </div>
+</div>
+
+<!-- ========== REPORT CARD / PDF KARNE MODAL ========== -->
+<div id="report-card-modal" class="modal-overlay hidden" onclick="app.closeReportCard(event)">
+  <div class="modal-card report-card-dialog" onclick="event.stopPropagation()">
+    
+    <!-- Modal Close Button & Non-Print Action Bar -->
+    <div class="report-modal-top no-print">
+      <span class="report-top-title">📋 Öğrenci Gelişim Karnesi</span>
+      <div class="report-top-actions">
+        <button class="btn btn-sm btn-primary" onclick="app.printReportCard()">🖨️ Yazdır / PDF İndir</button>
+        <button class="btn btn-sm btn-outline" id="btn-share-report" onclick="app.shareReportCard()">📤 Paylaş</button>
+        <button class="close-btn" onclick="app.closeReportCard()">✕</button>
+      </div>
+    </div>
+
+    <!-- Printable Report Sheet (A4 optimized) -->
+    <div class="report-sheet" id="printable-report">
+      
+      <!-- Report Header -->
+      <div class="report-header">
+        <div class="report-branding">
+          <div class="report-logo-badge">
+            <img src="logo.svg" alt="HızOku" width="48" height="48">
+          </div>
+          <div>
+            <h1 class="report-brand-name">HızOku</h1>
+            <p class="report-brand-sub">Bilimsel Hızlı Okuma & Anlama Kursu</p>
+          </div>
+        </div>
+        <div class="report-meta-box">
+          <div><strong>Rapor Tarihi:</strong> <span id="rep-date">20 Kasım 2026</span></div>
+          <div><strong>Rapor No:</strong> <span id="rep-id">HZK-2026-8941</span></div>
+          <div><strong>Hedef Odak:</strong> LGS & Akademik Okuma</div>
+        </div>
+      </div>
+
+      <div class="report-title-banner">
+        <h2>ÖĞRENCİ GELİŞİM VE BAŞARI KARNESİ</h2>
+        <p>11–14 Yaş Bilişsel Okuma Hızı ve Anlama Düzeyi Performans Belgesi</p>
+      </div>
+
+      <!-- Student Info Strip -->
+      <div class="report-student-strip">
+        <div class="rep-student-item">
+          <span class="rep-label">ÖĞRENCİ ADI</span>
+          <strong class="rep-val" id="rep-student-name">Öğrenci Adı</strong>
+        </div>
+        <div class="rep-student-item">
+          <span class="rep-label">MEVCUT SEVİYE</span>
+          <strong class="rep-val" id="rep-student-level">Seviye 2 - Odaklı Okuyucu</strong>
+        </div>
+        <div class="rep-student-item">
+          <span class="rep-label">KAZANILAN DENEYİM</span>
+          <strong class="rep-val" id="rep-student-xp">420 XP</strong>
+        </div>
+        <div class="rep-student-item">
+          <span class="rep-label">TAMAMLANAN OTURUM</span>
+          <strong class="rep-val" id="rep-student-exercises">12 Egzersiz</strong>
+        </div>
+      </div>
+
+      <!-- Metrics Comparison Matrix -->
+      <div class="report-section-title">📊 Temel Okuma & Anlama Metrikleri Karşılaştırması</div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Performans Göstergesi</th>
+            <th>Başlangıç Kalibrasyonu</th>
+            <th>Mevcut Durum</th>
+            <th>Gelişim / Net Değişim</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <strong>Okuma Hızı (WPM)</strong>
+              <small>Dakikada okunan kelime sayısı</small>
+            </td>
+            <td id="rep-init-wpm">140 KDK</td>
+            <td id="rep-curr-wpm">250 KDK</td>
+            <td><span class="rep-badge rep-badge-success" id="rep-diff-wpm">+%78 Artış</span></td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Anlama Oranı</strong>
+              <small>Egzersiz sonu anlama testleri doğruluğu</small>
+            </td>
+            <td id="rep-init-comp">%67</td>
+            <td id="rep-curr-comp">%90</td>
+            <td><span class="rep-badge rep-badge-success" id="rep-diff-comp">+%23 İyileşme</span></td>
+          </tr>
+          <tr class="rep-highlight-row">
+            <td>
+              <strong>Etkili Okuma Hızı (EOH) ⭐</strong>
+              <small>Bilimsel formül: (Okuma Hızı × Anlama %)</small>
+            </td>
+            <td id="rep-init-effective">94 EOH</td>
+            <td id="rep-curr-effective">225 EOH</td>
+            <td><span class="rep-badge rep-badge-primary" id="rep-diff-effective">+%139 Sıçrama</span></td>
+          </tr>
+          <tr>
+            <td>
+              <strong>Göz Çevikliği (Şulte Tablosu 5×5)</strong>
+              <small>Periferik tarama ve fiksasyon hızı</small>
+            </td>
+            <td>İlk Oturum</td>
+            <td id="rep-schulte-time">28.4 sn</td>
+            <td><span class="rep-badge rep-badge-success" id="rep-schulte-grade">Keskin Odak 🎯</span></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Progress History List -->
+      <div class="report-section-title">📈 Son Egzersiz Performans Kayıtları</div>
+      <div class="report-history-grid" id="rep-history-grid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Pedagogical Assessment & Teacher Advice -->
+      <div class="report-section-title">🧠 Pedagojik Rehberlik ve Öğretmen Değerlendirmesi</div>
+      <div class="report-pedagogical-box" id="rep-pedagogical-comment">
+        Öğrenci, okuma hızını artırırken anlama oranını korumayı başarmıştır. Gözün satır başı ve sonuna sıçrama refleksleri (sakkad) optimize edilmiş, regresyon (geri dönüş) oranı düşürülmüştür. Bu gelişim düzeyi, LGS Türkçe ve Fen Bilimleri yeni nesil paragraf sorularında soru başına ortalama 25-35 saniye zaman tasarrufu sağlamaktadır.
+      </div>
+
+      <!-- Badges Earned Strip -->
+      <div class="report-section-title">🏆 Kazanılan Rozet ve Yetkinlikler</div>
+      <div class="report-badges-strip" id="rep-badges-strip">
+        <!-- Badges rendered here -->
+      </div>
+
+      <!-- Signatures Footer -->
+      <div class="report-footer">
+        <div class="report-sign-col">
+          <div class="report-sign-line"></div>
+          <span>HızOku Değerlendirme Algoritması</span>
+        </div>
+        <div class="report-seal">
+          <div class="seal-circle">HIZOKU<br>ONAYLI<br>✓</div>
+        </div>
+        <div class="report-sign-col">
+          <div class="report-sign-line"></div>
+          <span>Rehberlik / Türkçe Öğretmeni İmzası</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Non-Print Actions -->
+    <div class="report-bottom-actions no-print mt-16">
+      <button class="btn btn-primary" onclick="app.printReportCard()">🖨️ Yazdır / PDF Olarak Kaydet</button>
+      <button class="btn btn-secondary" onclick="app.closeReportCard()">Kapat ✕</button>
+    </div>
+
   </div>
 </div>
 

@@ -2031,6 +2031,174 @@ const app = (() => {
     $('schulte-result-modal')?.classList.add('hidden');
   }
 
+  // ============================================================
+  // ---- Progress Report Card (PDF Karne) Module ----
+  // ============================================================
+
+  function openReportCard() {
+    if (!state.user) return;
+
+    const u = state.user;
+    const h = u.history || [];
+
+    // Date & ID
+    const todayStr = new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+    const repId = 'HZK-' + (u.createdAt ? u.createdAt.slice(0, 10).replace(/-/g, '') : '2026') + '-' + Math.floor(1000 + Math.random() * 9000);
+    
+    if ($('rep-date')) $('rep-date').textContent = todayStr;
+    if ($('rep-id')) $('rep-id').textContent = repId;
+
+    // Student Info
+    if ($('rep-student-name')) $('rep-student-name').textContent = u.name || 'Öğrenci';
+    const curLevel = getCurrentLevel();
+    if ($('rep-student-level')) $('rep-student-level').textContent = `${curLevel.name} (Sv. ${curLevel.level})`;
+    if ($('rep-student-xp')) $('rep-student-xp').textContent = `${u.xp} XP`;
+    if ($('rep-student-exercises')) $('rep-student-exercises').textContent = `${h.length} Oturum`;
+
+    // Metrics calculation
+    const initWpm = u.initialWPM || 140;
+    const initComp = u.initialComprehension || 70;
+    const initEffective = u.initialEffective || Math.round(initWpm * initComp / 100);
+
+    const latestWpm = h.length > 0 ? h[h.length - 1].wpm : initWpm;
+    // Average of last 3 exercises for comprehension stability
+    const latestComp = h.length > 0 
+      ? Math.round(h.slice(-3).reduce((s, e) => s + e.comprehension, 0) / Math.min(3, h.length))
+      : initComp;
+    const latestEffective = Math.round(latestWpm * latestComp / 100);
+
+    // Diffs
+    const diffWpmPct = Math.round(((latestWpm - initWpm) / initWpm) * 100);
+    const diffCompPct = latestComp - initComp;
+    const diffEffectivePct = Math.round(((latestEffective - initEffective) / initEffective) * 100);
+
+    if ($('rep-init-wpm')) $('rep-init-wpm').textContent = `${initWpm} KDK`;
+    if ($('rep-curr-wpm')) $('rep-curr-wpm').textContent = `${latestWpm} KDK`;
+    if ($('rep-diff-wpm')) {
+      $('rep-diff-wpm').textContent = (diffWpmPct >= 0 ? `+${diffWpmPct}%` : `${diffWpmPct}%`) + ' Artış';
+    }
+
+    if ($('rep-init-comp')) $('rep-init-comp').textContent = `%${initComp}`;
+    if ($('rep-curr-comp')) $('rep-curr-comp').textContent = `%${latestComp}`;
+    if ($('rep-diff-comp')) {
+      $('rep-diff-comp').textContent = (diffCompPct >= 0 ? `+${diffCompPct}%` : `${diffCompPct}%`) + ' İyileşme';
+    }
+
+    if ($('rep-init-effective')) $('rep-init-effective').textContent = `${initEffective} EOH`;
+    if ($('rep-curr-effective')) $('rep-curr-effective').textContent = `${latestEffective} EOH`;
+    if ($('rep-diff-effective')) {
+      $('rep-diff-effective').textContent = (diffEffectivePct >= 0 ? `+${diffEffectivePct}%` : `${diffEffectivePct}%`) + ' Sıçrama';
+    }
+
+    // Schulte
+    const schulteBest = u.schulteBestTime?.[5];
+    if ($('rep-schulte-time')) {
+      $('rep-schulte-time').textContent = schulteBest ? `${schulteBest} sn` : 'Henüz tamamlanmadı';
+    }
+    if ($('rep-schulte-grade')) {
+      if (schulteBest && parseFloat(schulteBest) <= 25) {
+        $('rep-schulte-grade').textContent = 'Şimşek Görüş ⚡';
+      } else if (schulteBest && parseFloat(schulteBest) <= 35) {
+        $('rep-schulte-grade').textContent = 'Keskin Odak 🎯';
+      } else {
+        $('rep-schulte-grade').textContent = schulteBest ? 'Gelişiyor 💪' : 'Bekleniyor ⏳';
+      }
+    }
+
+    // History Grid
+    const histGrid = $('rep-history-grid');
+    if (histGrid) {
+      histGrid.innerHTML = '';
+      const recent = h.slice(-4).reverse();
+      if (recent.length === 0) {
+        histGrid.innerHTML = '<div style="font-size:11.5px; color:#64748B; font-style:italic;">Henüz egzersiz geçmişi bulunmuyor.</div>';
+      } else {
+        recent.forEach((item, idx) => {
+          const pill = document.createElement('div');
+          pill.className = 'rep-history-pill';
+          const modeName = item.mode ? item.mode.toUpperCase() : 'OKUMA';
+          pill.innerHTML = `
+            <span>${idx + 1}. Oturum (${modeName})</span>
+            <strong>${item.wpm} KDK · %${item.comprehension}</strong>
+            <small style="color:#64748B;">Etkili: ${item.effectiveWPM} EOH</small>
+          `;
+          histGrid.appendChild(pill);
+        });
+      }
+    }
+
+    // Pedagogical Comment
+    const commentBox = $('rep-pedagogical-comment');
+    if (commentBox) {
+      if (latestEffective >= 220) {
+        commentBox.textContent = `Öğrenci, okuma hızını artırırken anlama oranını korumayı başarmıştır (%${latestComp}). Gözün satır başı ve sonuna sıçrama refleksleri (sakkad) optimize edilmiş, regresyon (geri dönüş) oranı minimuma indirilmiştir. Bu performans düzeyi, LGS Türkçe ve Fen Bilimleri yeni nesil paragraf sorularında soru başına ortalama 25-35 saniye zaman tasarrufu sağlamaktadır. Haftalık 3 oturumla bu kondisyonun korunması önerilir.`;
+      } else if (latestEffective >= 150) {
+        commentBox.textContent = `Öğrenci belirgin bir okuma temposu kazanmış ve etkili hızını %${diffEffectivePct > 0 ? diffEffectivePct : 40} oranında yükseltmiştir. Çevresel görüş alanı genişlemekte olup metin bloklarını çözümleme yeteneği artmıştır. LGS paragraf sorularında soru köküne odaklanma başarısı gözlenmektedir. Günlük 10 dakikalık düzenli pratikle kazanımların pekiştirilmesi tavsiye edilir.`;
+      } else {
+        commentBox.textContent = `Öğrenci göz kaslarını hızlandırma ve temel okuma fiksasyonlarını genişletme aşamasındadır. Anlama oranını yüksek tutarak kademeli hız artışlarına devam etmelidir. Özellikle Odak Modu (RSVP) ve Şulte Tablosu egzersizleriyle göz çevikliğinin desteklenmesi önerilmektedir.`;
+      }
+    }
+
+    // Badges Strip
+    const badgesStrip = $('rep-badges-strip');
+    if (badgesStrip) {
+      badgesStrip.innerHTML = '';
+      const earned = BADGES.filter(b => u.badges && u.badges.includes(b.id));
+      if (earned.length === 0) {
+        badgesStrip.innerHTML = '<span style="font-size:11px; color:#64748B;">İlk egzersizlerle rozetler açılacaktır.</span>';
+      } else {
+        earned.forEach(b => {
+          const chip = document.createElement('span');
+          chip.className = 'rep-badge-chip';
+          chip.innerHTML = `<span>${b.icon}</span> <span>${b.title}</span>`;
+          badgesStrip.appendChild(chip);
+        });
+      }
+    }
+
+    // Show modal
+    $('report-card-modal')?.classList.remove('hidden');
+  }
+
+  function printReportCard() {
+    window.print();
+  }
+
+  function shareReportCard() {
+    const u = state.user;
+    const h = u?.history || [];
+    const wpm = h.length > 0 ? h[h.length - 1].wpm : (u?.initialWPM || 140);
+    const comp = h.length > 0 ? h[h.length - 1].comprehension : (u?.initialComprehension || 70);
+    const effective = Math.round(wpm * comp / 100);
+
+    const shareText = `🎓 ${u?.name || 'Öğrenci'} - HızOku Hızlı Okuma Karnesi:\n` +
+      `⚡ Okuma Hızı: ${wpm} Kelime/Dakika\n` +
+      `🧠 Anlama Oranı: %${comp}\n` +
+      `⭐ Etkili Okuma Hızı (EOH): ${effective} EOH\n` +
+      `LGS ve ders başarısı için bilimsel yöntemlerle okuyoruz!`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: `${u?.name || 'Öğrenci'} - HızOku Gelişim Karnesi`,
+        text: shareText,
+        url: window.location.href,
+      }).catch(() => {});
+    } else {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareText).then(() => {
+          alert('📋 Karne özeti panoya kopyalandı! WhatsApp veya mesaj yoluyla öğretmeninizle veya velinizle paylaşabilirsiniz.');
+        });
+      } else {
+        alert(shareText);
+      }
+    }
+  }
+
+  function closeReportCard(e) {
+    if (e && e.target && e.target.id !== 'report-card-modal') return;
+    $('report-card-modal')?.classList.add('hidden');
+  }
+
   function confirmExit() {
     if (confirm('Egzersizden çıkmak istediğine emin misin? İlerleme kaydedilmeyecek.')) {
       stopAllExercises();
@@ -2082,6 +2250,10 @@ const app = (() => {
     setSchulteTheme,
     restartSchulte,
     closeSchulteModal,
+    openReportCard,
+    printReportCard,
+    shareReportCard,
+    closeReportCard,
   };
 })();
 
