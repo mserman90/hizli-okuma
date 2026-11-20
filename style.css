@@ -388,12 +388,17 @@ body {
 }
 
 /* ---------- Exercise Mode Cards ---------- */
+.dashboard-modes-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .mode-card {
   background: var(--bg-card);
   border-radius: var(--radius);
   padding: 18px;
   box-shadow: var(--shadow);
-  margin-bottom: 12px;
   cursor: pointer;
   transition: var(--transition);
   border: 2px solid transparent;
@@ -1370,18 +1375,401 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* ---------- Tablet / Larger screens ---------- */
-@media (min-width: 500px) {
-  :root {
-    --max-width: 480px;
+/* ============================================================
+   RESPONSIVE DESIGN SYSTEM (Mobile, Tablet, Desktop, Landscape)
+   ============================================================ */
+
+/* 1. Ultra-Compact Mobile Screens (<= 360px, e.g. iPhone SE, Galaxy Fold) */
+@media (max-width: 360px) {
+  .screen {
+    padding: 14px 10px;
   }
-  
+
+  .top-bar {
+    padding: 8px 0;
+    margin-bottom: 12px;
+  }
+
+  .top-bar h2 {
+    font-size: 16px;
+  }
+
+  .top-bar .back-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+
+  .top-bar .spacer {
+    width: 36px;
+  }
+
+  /* Stats row */
+  .stats-row {
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+
+  .stat-card {
+    padding: 10px 4px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 18px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 9.5px;
+  }
+
+  /* Quick controls */
+  .quick-controls {
+    gap: 4px;
+  }
+
+  .quick-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  /* Mode cards */
+  .mode-card {
+    padding: 14px;
+  }
+
+  .mode-card .mode-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 22px;
+  }
+
+  .mode-card .mode-info h3 {
+    font-size: 14.5px;
+  }
+
+  .mode-card .mode-desc {
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  /* Marathon HUD */
+  .marathon-hud {
+    padding: 8px 8px;
+  }
+
+  .marathon-hud-left {
+    gap: 6px;
+  }
+
+  .marathon-hud-tag {
+    font-size: 8px;
+  }
+
+  .marathon-hud-qtitle {
+    font-size: 13px;
+  }
+
+  .marathon-timer-pill {
+    padding: 4px 7px;
+    font-size: 12px;
+    gap: 3px;
+  }
+
+  .marathon-hud-right {
+    gap: 6px;
+  }
+
+  .marathon-hud-right .btn-sm {
+    padding: 5px 8px;
+    font-size: 11px;
+  }
+
+  /* Marathon Exam Cards */
+  .marathon-exam-card {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .marathon-exam-icon-box {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+
+  .marathon-exam-info h4 {
+    font-size: 12.5px;
+  }
+
+  .exam-best-pill {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+
+  /* Custom text live stats */
+  .custom-stats-bar {
+    gap: 4px;
+  }
+
+  .custom-stat-pill {
+    padding: 5px 4px;
+  }
+
+  .custom-stat-pill .pill-label {
+    font-size: 9px;
+  }
+
+  .custom-stat-pill strong {
+    font-size: 12px;
+  }
+
+  /* Schulte grid compact */
+  .schulte-grid {
+    padding: 6px;
+    gap: 5px;
+  }
+
+  .schulte-grid.size-5 .schulte-cell {
+    font-size: 16px;
+  }
+
+  /* Bottom nav */
+  .bottom-nav .nav-label {
+    font-size: 10px;
+  }
+
+  /* Results screen */
+  .results-stats {
+    gap: 8px;
+    margin: 14px 0;
+  }
+
+  .result-stat {
+    padding: 10px 6px;
+  }
+
+  .result-stat .stat-value {
+    font-size: 18px;
+  }
+
+  .result-stat .stat-label {
+    font-size: 10px;
+  }
+}
+
+/* 2. Standard Mobile to Tablet Transition */
+@media (min-width: 500px) {
   .rsvp-word {
     font-size: 42px;
   }
-  
+
   .visual-field-word-group {
     font-size: 26px;
+  }
+}
+
+/* 3. Tablet & Medium Screens (min-width: 640px) */
+@media (min-width: 640px) {
+  :root {
+    --max-width: 640px;
+  }
+
+  .screen {
+    padding: 24px 20px;
+  }
+
+  /* Dashboard 2-column grid layout */
+  .dashboard-modes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+
+  .dashboard-modes-grid .mode-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .dashboard-modes-grid .marathon-mode-card {
+    grid-column: 1 / -1;
+  }
+
+  /* Stats row */
+  .stats-row {
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    padding: 18px 14px;
+  }
+
+  .stat-card .stat-value {
+    font-size: 26px;
+  }
+
+  .stat-card .stat-label {
+    font-size: 12px;
+  }
+
+  /* Marathon 4-column Rules */
+  .marathon-rules-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .marathon-rule-card {
+    padding: 14px 10px;
+  }
+
+  /* Results stats 4 in a row */
+  .results-stats {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  /* Badges 3 columns */
+  .badges-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+
+  /* Reading container typography */
+  .reading-container {
+    padding: 24px 28px;
+  }
+
+  .reading-text {
+    font-size: 18px;
+    line-height: 1.85;
+  }
+
+  .rsvp-word {
+    font-size: 46px;
+  }
+
+  .visual-field-word-group {
+    font-size: 28px;
+  }
+
+  .guided-text {
+    font-size: 20px;
+    line-height: 2.2;
+  }
+
+  .bionic-text {
+    font-size: 18.5px;
+    line-height: 1.85;
+  }
+
+  /* Centered Modal on Tablet/Desktop */
+  .modal-overlay {
+    align-items: center;
+    padding: 24px;
+  }
+
+  .modal-card {
+    border-radius: 20px;
+    max-height: 85vh;
+  }
+
+  /* Schulte table generous size */
+  .schulte-grid {
+    max-width: 420px;
+    padding: 14px;
+  }
+
+  /* Custom text studio */
+  .custom-textarea {
+    min-height: 180px;
+    font-size: 15px;
+  }
+
+  /* Marathon Simulator */
+  .marathon-passage-box {
+    max-height: 380px;
+    font-size: 15px;
+    line-height: 1.7;
+    padding: 18px 20px;
+  }
+}
+
+/* 4. Desktop & Large Screens (min-width: 960px) */
+@media (min-width: 960px) {
+  :root {
+    --max-width: 760px;
+  }
+
+  /* Enhanced interactive hover states */
+  .mode-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.16);
+    border-color: rgba(108, 92, 231, 0.3);
+  }
+
+  .custom-text-banner-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.35);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(108, 92, 231, 0.14);
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(108, 92, 231, 0.45);
+  }
+
+  .schulte-grid {
+    max-width: 440px;
+  }
+
+  .schulte-grid.size-3 .schulte-cell { font-size: 36px; }
+  .schulte-grid.size-4 .schulte-cell { font-size: 28px; }
+  .schulte-grid.size-5 .schulte-cell { font-size: 24px; }
+}
+
+/* 5. Landscape Mode on Small Devices (height <= 520px) */
+@media (max-height: 520px) and (orientation: landscape) {
+  .modal-overlay {
+    align-items: center;
+    padding: 8px;
+  }
+
+  .modal-card {
+    max-height: 94dvh;
+    padding: 16px 18px;
+    border-radius: 16px;
+  }
+
+  .report-card-dialog {
+    max-height: 95dvh;
+    padding: 12px 16px;
+  }
+
+  .schulte-grid {
+    max-width: 250px;
+    padding: 6px;
+  }
+
+  .schulte-grid.size-5 .schulte-cell {
+    font-size: 15px;
+  }
+
+  .rsvp-display {
+    min-height: 120px;
+  }
+
+  .welcome-hero {
+    padding: 16px 0 10px;
+  }
+
+  .welcome-logo {
+    width: 68px;
+    height: 68px;
+    margin-bottom: 8px;
   }
 }
 
@@ -1528,7 +1916,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  flex-wrap: wrap;
+  gap: 6px;
   margin-bottom: 12px;
 }
 
@@ -1660,6 +2049,10 @@ button, .btn, .nav-item, .mode-card, .quiz-option, .text-select-item {
   background: var(--bg-card);
   width: 100%;
   max-width: var(--max-width);
+  max-height: 90dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   border-radius: 24px 24px 0 0;
   padding: 24px 20px;
   box-shadow: var(--shadow-lg);

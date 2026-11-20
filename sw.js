@@ -2,7 +2,7 @@
 // HızOku - Service Worker (PWA Offline Desteği)
 // ============================================================
 
-const CACHE_NAME = 'hizoku-v1.0.8';
+const CACHE_NAME = 'hizoku-v1.0.9';
 
 const PRECACHE_ASSETS = [
   './',
