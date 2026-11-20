@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6C5CE7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>HızOku – Hızlı Okuma Kursu</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ========== WELCOME SCREEN ========== -->
+  <div id="screen-welcome" class="screen active">
+    <div class="welcome-hero">
+      <div class="welcome-logo">📖</div>
+      <h1>HızOku</h1>
+      <p>Bilimsel yöntemlerle okuma hızını artır, anlayarak oku!</p>
+    </div>
+
+    <div class="welcome-features">
+      <div class="welcome-feature">
+        <div class="feat-icon purple">🎯</div>
+        <div>
+          <h3>Kişiselleştirilmiş Plan</h3>
+          <p>Seviyene özel egzersizler ve haftalık hedefler</p>
+        </div>
+      </div>
+      <div class="welcome-feature">
+        <div class="feat-icon teal">🧠</div>
+        <div>
+          <h3>Anlama Garantili</h3>
+          <p>Her egzersizde anlama testi ile etkili okuma hızı</p>
+        </div>
+      </div>
+      <div class="welcome-feature">
+        <div class="feat-icon pink">🏆</div>
+        <div>
+          <h3>Rozetler ve Seviyeler</h3>
+          <p>Gelişimini takip et, rozetler kazan</p>
+        </div>
+      </div>
+      <div class="welcome-feature">
+        <div class="feat-icon yellow">📱</div>
+        <div>
+          <h3>Her Yerde Kullan</h3>
+          <p>Telefon veya tablette, günde 10–15 dakika yeter</p>
+        </div>
+      </div>
+    </div>
+
+    <input type="text" id="input-name" class="name-input" placeholder="Adını yaz..." maxlength="20" autocomplete="off">
+    <button class="btn btn-primary" onclick="app.startCalibration()">🚀 Başlayalım!</button>
+  </div>
+
+  <!-- ========== CALIBRATION READING SCREEN ========== -->
+  <div id="screen-calibration" class="screen">
+    <div class="top-bar">
+      <div class="spacer"></div>
+      <h2>📏 Seviye Testi</h2>
+      <div class="spacer"></div>
+    </div>
+    
+    <div class="reading-instructions">
+      <strong>Nasıl çalışır?</strong><br>
+      Metni normal hızında oku. Bitirdiğinde "Okudum" butonuna bas.<br>
+      Ardından kısa bir anlama testi gelecek.
+    </div>
+
+    <div class="reading-container">
+      <div class="reading-timer" id="calibration-timer">⏱️ <span>0 saniye</span></div>
+      <div class="reading-text" id="calibration-text"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="app.finishCalibrationReading()">✅ Okudum, Hazırım!</button>
+  </div>
+
+  <!-- ========== CALIBRATION QUIZ ========== -->
+  <div id="screen-calibration-quiz" class="screen">
+    <div class="top-bar">
+      <div class="spacer"></div>
+      <h2>🧠 Anlama Testi</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="card">
+      <div class="quiz-question-num" id="cal-quiz-num"></div>
+      <div class="quiz-question" id="cal-quiz-question"></div>
+      <div class="quiz-options" id="cal-quiz-options"></div>
+    </div>
+
+    <button class="btn btn-primary mt-16 hidden" id="cal-quiz-next" onclick="app.nextCalibrationQuestion()">Sonraki Soru ➡️</button>
+  </div>
+
+  <!-- ========== CALIBRATION RESULT ========== -->
+  <div id="screen-calibration-result" class="screen">
+    <div class="results-hero">
+      <div class="result-emoji" id="cal-result-emoji">🌟</div>
+      <h2 id="cal-result-title">Harika Başlangıç!</h2>
+      <p id="cal-result-subtitle"></p>
+    </div>
+
+    <div class="results-stats">
+      <div class="result-stat">
+        <div class="stat-icon">📖</div>
+        <div class="stat-value" id="cal-wpm">0</div>
+        <div class="stat-label">Kelime/Dakika</div>
+      </div>
+      <div class="result-stat">
+        <div class="stat-icon">🧠</div>
+        <div class="stat-value" id="cal-comprehension">0%</div>
+        <div class="stat-label">Anlama Oranı</div>
+      </div>
+      <div class="result-stat highlight">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value" id="cal-effective">0</div>
+        <div class="stat-label">Etkili Hız (KDK)</div>
+      </div>
+      <div class="result-stat">
+        <div class="stat-icon">📊</div>
+        <div class="stat-value" id="cal-level">1</div>
+        <div class="stat-label">Başlangıç Seviye</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <p style="font-size:14px; color:var(--text-light); line-height:1.6;" id="cal-result-explanation"></p>
+    </div>
+
+    <button class="btn btn-primary mt-16" onclick="app.goToDashboard()">🏠 Kursa Başla!</button>
+  </div>
+
+  <!-- ========== DASHBOARD ========== -->
+  <div id="screen-dashboard" class="screen">
+    <div class="quick-controls">
+      <button class="quick-btn" id="btn-toggle-sound" onclick="app.toggleSound()">🔊 Ses: Açık</button>
+      <button class="quick-btn" onclick="app.adjustFontSize(-0.1)">A-</button>
+      <button class="quick-btn" onclick="app.adjustFontSize(0.1)">A+</button>
+    </div>
+
+    <div class="dashboard-greeting">
+      <h1 id="greeting-text">Merhaba! 👋</h1>
+      <p id="greeting-tip"></p>
+    </div>
+
+    <div class="level-bar" id="level-bar">
+      <div class="level-info">
+        <div class="level-name"><span id="level-icon">🌱</span> <span id="level-name">Çaylak Okuyucu</span></div>
+        <div class="level-xp"><span id="level-xp">0</span> / <span id="level-xp-next">100</span> XP</div>
+      </div>
+      <div class="xp-bar">
+        <div class="xp-bar-fill" id="xp-bar-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-value" id="dash-effective-wpm">—</div>
+        <div class="stat-label">Etkili Hız</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="dash-exercises">0</div>
+        <div class="stat-label">Egzersiz</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="dash-streak">0 🔥</div>
+        <div class="stat-label">Gün Serisi</div>
+      </div>
+    </div>
+
+    <div class="weekly-goal" id="weekly-goal">
+      <h3>📅 Haftalık Hedef</h3>
+      <div class="goal-text" id="weekly-goal-text">Bu hafta 5 egzersiz tamamla</div>
+      <div class="goal-progress-bar">
+        <div class="goal-progress-fill" id="weekly-goal-fill" style="width:0%"></div>
+      </div>
+      <div class="goal-info">
+        <span id="weekly-goal-done">0 / 5</span>
+        <span id="weekly-goal-pct">%0</span>
+      </div>
+    </div>
+
+    <div class="tip-card" id="daily-tip"></div>
+
+    <h3 class="section-title">🎯 Egzersiz Modları</h3>
+
+    <!-- RSVP Mode -->
+    <div class="mode-card" onclick="app.selectMode('rsvp')">
+      <div class="mode-top">
+        <div class="mode-icon" style="background:rgba(108,92,231,0.1)">👁️</div>
+        <div class="mode-info">
+          <h3>Odak Modu (RSVP)</h3>
+          <p>Hızlı Seri Görsel Sunum</p>
+        </div>
+        <span class="badge badge-purple">Temel</span>
+      </div>
+      <div class="mode-desc">
+        <strong>🔬 Bu mod ne işe yarar?</strong> Kelimeleri sabit bir odak noktasında tek tek göstererek göz sıçramalarını (sakkad) azaltır. Böylece gözlerin satır boyunca hareket etmek yerine tek noktaya odaklanır ve okuma hızı artar.
+      </div>
+    </div>
+
+    <!-- Visual Field Mode -->
+    <div class="mode-card" onclick="app.selectMode('visual')">
+      <div class="mode-top">
+        <div class="mode-icon" style="background:rgba(0,206,201,0.1)">🔭</div>
+        <div class="mode-info">
+          <h3>Genişletilmiş Görüş Alanı</h3>
+          <p>Fiksasyon genişliğini artır</p>
+        </div>
+        <span class="badge badge-teal">Temel</span>
+      </div>
+      <div class="mode-desc">
+        <strong>🔬 Bu mod ne işe yarar?</strong> Kelime gruplarını birlikte göstererek çevresel görüşünü geliştirir. Daha geniş fiksasyon alanı = daha az göz hareketi = daha hızlı okuma. Araştırmalar, usta okuyucuların bir fiksasyonda 3-4 kelime işleyebildiğini gösterir.
+      </div>
+    </div>
+
+    <!-- Guided Reading Mode -->
+    <div class="mode-card" onclick="app.selectMode('guided')">
+      <div class="mode-top">
+        <div class="mode-icon" style="background:rgba(253,121,168,0.1)">📍</div>
+        <div class="mode-info">
+          <h3>Yönlendirilmiş Okuma</h3>
+          <p>Regresyonları azalt</p>
+        </div>
+        <span class="badge badge-pink">Temel</span>
+      </div>
+      <div class="mode-desc">
+        <strong>🔬 Bu mod ne işe yarar?</strong> Bir vurgu çubuğu ile gözünü satır boyunca yönlendirir. Geri dönüşleri (regresyon) azaltarak akıcı okumayı destekler. Çalışmalar, okuma sırasında geri dönüşlerin zamanın %10-15'ini tükettiğini gösterir.
+      </div>
+    </div>
+
+    <!-- LGS Paragraph Mode -->
+    <div class="mode-card" onclick="app.selectMode('lgs')">
+      <div class="mode-top">
+        <div class="mode-icon" style="background:rgba(253,203,110,0.2)">🎯</div>
+        <div class="mode-info">
+          <h3>LGS Paragraf Antrenörü</h3>
+          <p>Sınav süre yönetimi ve analitik okuma</p>
+        </div>
+        <span class="badge badge-yellow">Sınav Modu</span>
+      </div>
+      <div class="mode-desc">
+        <strong>🎓 LGS'de nasıl yardımcı olur?</strong> LGS Türkçe paragraf sorularında zaman baskısını yenmek için hedef süre (60-90 sn) içerisinde odaklanarak okumanı ve metne geri dönmeden soru kökünü çözümlemeni sağlar.
+      </div>
+    </div>
+
+    <!-- Bionic Reading Mode (Experimental) -->
+    <div class="mode-card" onclick="app.selectMode('bionic')">
+      <div class="mode-top">
+        <div class="mode-icon" style="background:rgba(225,112,85,0.1)">🧪</div>
+        <div class="mode-info">
+          <h3>Biyonik Okuma</h3>
+          <p>İlk harf vurgulu yapay akış</p>
+        </div>
+        <span class="badge badge-experimental">Deneysel</span>
+      </div>
+      <div class="mode-desc">
+        <strong>⚠️ Bilimsel Not:</strong> Kelimelerin ilk birkaç harfini kalınlaştırarak gözün atlama hızını artırmayı amaçlar. Ancak bağımsız bilimsel araştırmalar okuma hızına ve anlama düzeyine kanıtlanmış bir katkısı olmadığını göstermektedir. <em>Kendi anlama testini çözerek etkinliğini kendin dene!</em>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TEXT SELECT (for exercises) ========== -->
+  <div id="screen-text-select" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.goToDashboard()">←</button>
+      <h2 id="text-select-title">Metin Seç</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="exercise-info-banner" id="text-select-info">
+      <span class="info-icon">ℹ️</span>
+      <span></span>
+    </div>
+
+    <div class="text-select-grid" id="text-select-grid"></div>
+  </div>
+
+  <!-- ========== RSVP EXERCISE ========== -->
+  <div id="screen-exercise-rsvp" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.confirmExit()">←</button>
+      <h2>👁️ Odak Modu</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="speed-control">
+      <label>Hız:</label>
+      <input type="range" id="rsvp-speed" min="100" max="600" step="25" value="200" oninput="app.updateRSVPSpeed(this.value)">
+      <div class="speed-value" id="rsvp-speed-label">200 KDK</div>
+    </div>
+
+    <div class="rsvp-container">
+      <div class="rsvp-word" id="rsvp-word">Hazır mısın?</div>
+      <div class="rsvp-focus-line"></div>
+      <div class="rsvp-progress-bar">
+        <div class="rsvp-progress-fill" id="rsvp-progress"></div>
+      </div>
+    </div>
+
+    <div class="rsvp-speed-display">Hedef hız: <span id="rsvp-target-speed">200</span> kelime/dakika</div>
+
+    <div class="rsvp-controls" id="rsvp-controls">
+      <button class="btn btn-primary" id="rsvp-start-btn" onclick="app.startRSVP()">▶️ Başla</button>
+    </div>
+  </div>
+
+  <!-- ========== VISUAL FIELD EXERCISE ========== -->
+  <div id="screen-exercise-visual" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.confirmExit()">←</button>
+      <h2>🔭 Görüş Alanı</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="speed-control">
+      <label>Hız:</label>
+      <input type="range" id="visual-speed" min="100" max="500" step="25" value="180" oninput="app.updateVisualSpeed(this.value)">
+      <div class="speed-value" id="visual-speed-label">180 KDK</div>
+    </div>
+
+    <div class="speed-control">
+      <label>Grup:</label>
+      <input type="range" id="visual-group" min="2" max="5" step="1" value="3" oninput="app.updateVisualGroup(this.value)">
+      <div class="speed-value" id="visual-group-label">3 kelime</div>
+    </div>
+
+    <div class="visual-field-container">
+      <div class="visual-field-word-group" id="visual-word-group">Hazır mısın?</div>
+      <div class="rsvp-progress-bar mt-20">
+        <div class="rsvp-progress-fill" id="visual-progress"></div>
+      </div>
+    </div>
+
+    <div class="rsvp-controls" id="visual-controls">
+      <button class="btn btn-primary" id="visual-start-btn" onclick="app.startVisual()">▶️ Başla</button>
+    </div>
+  </div>
+
+  <!-- ========== GUIDED READING EXERCISE ========== -->
+  <div id="screen-exercise-guided" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.confirmExit()">←</button>
+      <h2>📍 Yönlendirilmiş Okuma</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="speed-control">
+      <label>Hız:</label>
+      <input type="range" id="guided-speed" min="100" max="500" step="25" value="180" oninput="app.updateGuidedSpeed(this.value)">
+      <div class="speed-value" id="guided-speed-label">180 KDK</div>
+    </div>
+
+    <div class="guided-container">
+      <div class="guided-text" id="guided-text">Hazır mısın?</div>
+      <div class="rsvp-progress-bar mt-20">
+        <div class="rsvp-progress-fill" id="guided-progress"></div>
+      </div>
+    </div>
+
+    <div class="rsvp-controls" id="guided-controls">
+      <button class="btn btn-primary" id="guided-start-btn" onclick="app.startGuided()">▶️ Başla</button>
+    </div>
+  </div>
+
+  <!-- ========== LGS PARAGRAPH EXERCISE ========== -->
+  <div id="screen-exercise-lgs" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.confirmExit()">←</button>
+      <h2>🎯 LGS Antrenörü</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="exercise-info-banner" style="border-left-color:var(--accent-light);">
+      <span class="info-icon">⏱️</span>
+      <div>
+        <strong>Hedef Süre: 75 Saniye!</strong><br>
+        LGS'de bir Türkçe paragrafı için ideal okuma ve anlama süresi 60–80 saniyedir.
+      </div>
+    </div>
+
+    <div class="reading-container">
+      <div class="reading-timer" id="lgs-timer">⏱️ <span>0 saniye</span> · Hedef: 75 sn</div>
+      <div class="reading-title" id="lgs-title">Paragraf Başlığı</div>
+      <div class="reading-meta" id="lgs-meta"></div>
+      <div class="reading-text" id="lgs-text" style="font-size:16.5px; line-height:1.85;"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="app.finishLGSReading()">📝 Okudum, Soruları Çöz!</button>
+  </div>
+
+  <!-- ========== BIONIC READING EXERCISE (EXPERIMENTAL) ========== -->
+  <div id="screen-exercise-bionic" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.confirmExit()">←</button>
+      <h2>🧪 Biyonik Okuma</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="exercise-info-banner" style="border-left-color:var(--danger); background:rgba(225,112,85,0.08);">
+      <span class="info-icon">🧪</span>
+      <div>
+        <strong>Deneysel Mod Uyarısı:</strong><br>
+        Bilimsel araştırmalar biyonik okumanın hız ve anlamada anlamlı bir fark yaratmadığını göstermektedir. Test sonrası kendi etkili hızını diğer modlarla kıyasla!
+      </div>
+    </div>
+
+    <div class="reading-container">
+      <div class="reading-timer" id="bionic-timer">⏱️ <span>0 saniye</span></div>
+      <div class="reading-title" id="bionic-title">Metin Başlığı</div>
+      <div class="reading-meta" id="bionic-meta"></div>
+      <div class="reading-text" id="bionic-text" style="font-size:17px; line-height:1.9;"></div>
+    </div>
+
+    <button class="btn btn-primary" onclick="app.finishBionicReading()">✅ Okudum, Teste Geç!</button>
+  </div>
+
+  <!-- ========== COMPREHENSION QUIZ ========== -->
+  <div id="screen-quiz" class="screen">
+    <div class="top-bar">
+      <div class="spacer"></div>
+      <h2>🧠 Anlama Testi</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="card">
+      <div class="quiz-question-num" id="quiz-num"></div>
+      <div class="quiz-question" id="quiz-question"></div>
+      <div class="quiz-options" id="quiz-options"></div>
+    </div>
+
+    <button class="btn btn-primary mt-16 hidden" id="quiz-next" onclick="app.nextQuestion()">Sonraki Soru ➡️</button>
+  </div>
+
+  <!-- ========== EXERCISE RESULTS ========== -->
+  <div id="screen-results" class="screen">
+    <div class="results-hero">
+      <div class="result-emoji" id="result-emoji">🌟</div>
+      <h2 id="result-title">Tebrikler!</h2>
+      <p id="result-subtitle"></p>
+    </div>
+
+    <div class="results-stats">
+      <div class="result-stat">
+        <div class="stat-icon">📖</div>
+        <div class="stat-value" id="result-wpm">0</div>
+        <div class="stat-label">Kelime/Dakika</div>
+      </div>
+      <div class="result-stat">
+        <div class="stat-icon">🧠</div>
+        <div class="stat-value" id="result-comprehension">0%</div>
+        <div class="stat-label">Anlama Oranı</div>
+      </div>
+      <div class="result-stat highlight">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value" id="result-effective">0</div>
+        <div class="stat-label">Etkili Hız (KDK)</div>
+      </div>
+      <div class="result-stat">
+        <div class="stat-icon">🏅</div>
+        <div class="stat-value" id="result-xp">+0</div>
+        <div class="stat-label">XP Kazanıldı</div>
+      </div>
+    </div>
+
+    <div id="new-badges-container"></div>
+
+    <div class="xp-gained" id="xp-gained-banner" style="display:none">
+      ✨ <span id="xp-gained-amount">+0 XP</span> kazandın!
+    </div>
+
+    <div class="results-buttons">
+      <button class="btn btn-primary" onclick="app.goToDashboard()">🏠 Ana Sayfa</button>
+      <button class="btn btn-secondary" onclick="app.repeatExercise()">🔄 Tekrar Dene</button>
+    </div>
+  </div>
+
+  <!-- ========== PROGRESS SCREEN ========== -->
+  <div id="screen-progress" class="screen">
+    <div class="top-bar">
+      <div class="spacer"></div>
+      <h2>📊 İlerleme</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="progress-summary">
+      <div class="stat-card">
+        <div class="stat-value" id="prog-total">0</div>
+        <div class="stat-label">Toplam Egzersiz</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="prog-avg-effective">—</div>
+        <div class="stat-label">Ort. Etkili Hız</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="prog-best-effective">—</div>
+        <div class="stat-label">En İyi Etkili Hız</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="prog-avg-comp">—</div>
+        <div class="stat-label">Ort. Anlama</div>
+      </div>
+    </div>
+
+    <div class="progress-chart-container">
+      <div class="chart-title">📈 Etkili Okuma Hızı (Son 10 Egzersiz)</div>
+      <div class="chart-canvas-wrapper">
+        <canvas id="progress-chart"></canvas>
+      </div>
+    </div>
+
+    <div class="progress-chart-container">
+      <div class="chart-title">🧠 Anlama Oranı (Son 10 Egzersiz)</div>
+      <div class="chart-canvas-wrapper">
+        <canvas id="comprehension-chart"></canvas>
+      </div>
+    </div>
+
+    <div id="progress-empty" class="empty-state" style="display:none">
+      <div class="empty-icon">📊</div>
+      <h3>Henüz veri yok</h3>
+      <p>Egzersiz yaptıkça burada gelişim grafiğin oluşacak!</p>
+    </div>
+  </div>
+
+  <!-- ========== BADGES SCREEN ========== -->
+  <div id="screen-badges" class="screen">
+    <div class="top-bar">
+      <div class="spacer"></div>
+      <h2>🏆 Rozetler</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="card text-center mb-16">
+      <p style="font-size:14px; color:var(--text-light);">Kazanılan: <strong id="badges-earned">0</strong> / <span id="badges-total">0</span></p>
+    </div>
+
+    <div class="badges-grid" id="badges-grid"></div>
+  </div>
+
+  <!-- ========== COURSE PLAN SCREEN ========== -->
+  <div id="screen-course" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.goToDashboard()">←</button>
+      <h2>📋 Kurs Planı</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="card mb-16">
+      <p style="font-size:14px; color:var(--text-light); line-height:1.5;">
+        Kişisel planın başlangıç hızına göre oluşturuldu. Her hafta ilerledikçe hedefler güncellenir. Düzenli pratik, hızlı ilerlemenin anahtarıdır! 🔑
+      </p>
+    </div>
+
+    <div id="course-weeks"></div>
+  </div>
+
+  <!-- ========== BOTTOM NAVIGATION ========== -->
+  <nav class="bottom-nav hidden" id="bottom-nav">
+    <button class="nav-item active" data-screen="dashboard" onclick="app.navigate('dashboard')">
+      <span class="nav-icon">🏠</span>
+      Ana Sayfa
+    </button>
+    <button class="nav-item" data-screen="progress" onclick="app.navigate('progress')">
+      <span class="nav-icon">📊</span>
+      İlerleme
+    </button>
+    <button class="nav-item" data-screen="badges" onclick="app.navigate('badges')">
+      <span class="nav-icon">🏆</span>
+      Rozetler
+    </button>
+    <button class="nav-item" data-screen="course" onclick="app.navigate('course')">
+      <span class="nav-icon">📋</span>
+      Plan
+    </button>
+  </nav>
+
+</div>
+
+<!-- Countdown overlay -->
+<div class="countdown-overlay hidden" id="countdown-overlay">
+  <div class="countdown-number" id="countdown-number">3</div>
+</div>
+
+<!-- Confetti container -->
+<div class="confetti-container hidden" id="confetti-container"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
