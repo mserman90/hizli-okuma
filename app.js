@@ -33,6 +33,9 @@ const app = (() => {
     lgsStartTime: null,
     soundEnabled: true,
     fontScale: 1,
+    deferredPrompt: null,
+    wakeLock: null,
+    isIos: false,
     lastExerciseMode: null,
     newBadges: [],
   };
@@ -122,6 +125,117 @@ const app = (() => {
     playTone(659.25, 'triangle', 0.1, 90);
     playTone(783.99, 'triangle', 0.1, 180);
     playTone(1046.50, 'triangle', 0.35, 270);
+  }
+
+  // ---- Mobile & Haptic APIs ----
+  function triggerVibrate(pattern) {
+    if ('vibrate' in navigator) {
+      try {
+        navigator.vibrate(pattern);
+      } catch (e) {}
+    }
+  }
+
+  async function requestWakeLock() {
+    if ('wakeLock' in navigator) {
+      try {
+        state.wakeLock = await navigator.wakeLock.request('screen');
+      } catch (err) {}
+    }
+  }
+
+  function releaseWakeLock() {
+    if (state.wakeLock) {
+      try {
+        state.wakeLock.release().catch(() => {});
+      } catch (e) {}
+      state.wakeLock = null;
+    }
+  }
+
+  // ---- PWA Integration ----
+  function setupPWA() {
+    const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    state.isIos = isIos;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+
+    // Show install prompt/button on iOS if not already standalone
+    if (isIos && !isStandalone) {
+      const btn = $('btn-install-pwa');
+      if (btn) btn.classList.remove('hidden');
+      const dismissed = localStorage.getItem('hizoku_pwa_dismissed');
+      if (!dismissed) {
+        const banner = $('pwa-install-banner');
+        if (banner) banner.classList.remove('hidden');
+      }
+    }
+
+    // Android / Chrome / Edge install prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      state.deferredPrompt = e;
+      const btn = $('btn-install-pwa');
+      if (btn) btn.classList.remove('hidden');
+
+      const dismissed = localStorage.getItem('hizoku_pwa_dismissed');
+      if (!dismissed) {
+        const banner = $('pwa-install-banner');
+        if (banner) banner.classList.remove('hidden');
+      }
+    });
+
+    window.addEventListener('appinstalled', () => {
+      state.deferredPrompt = null;
+      const btn = $('btn-install-pwa');
+      if (btn) btn.classList.add('hidden');
+      const banner = $('pwa-install-banner');
+      if (banner) banner.classList.add('hidden');
+      triggerVibrate([50, 100, 50]);
+    });
+
+    // Online / Offline listeners
+    const updateOnlineStatus = () => {
+      const pill = $('offline-pill');
+      if (pill) {
+        if (navigator.onLine) {
+          pill.classList.add('hidden');
+        } else {
+          pill.classList.remove('hidden');
+        }
+      }
+    };
+    window.addEventListener('online', updateOnlineStatus);
+    window.addEventListener('offline', updateOnlineStatus);
+    updateOnlineStatus();
+  }
+
+  function promptInstall() {
+    if (state.deferredPrompt) {
+      state.deferredPrompt.prompt();
+      state.deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+          const banner = $('pwa-install-banner');
+          if (banner) banner.classList.add('hidden');
+        }
+        state.deferredPrompt = null;
+      });
+    } else if (state.isIos) {
+      const modal = $('ios-install-modal');
+      if (modal) modal.classList.remove('hidden');
+    } else {
+      alert('Uygulama zaten yüklü veya tarayıcınızın menüsünden (⋮) "Uygulamayı Yükle" / "Ana Ekrana Ekle" seçeneğini kullanabilirsiniz.');
+    }
+  }
+
+  function dismissPWA() {
+    const banner = $('pwa-install-banner');
+    if (banner) banner.classList.add('hidden');
+    localStorage.setItem('hizoku_pwa_dismissed', 'true');
+  }
+
+  function closeIosModal() {
+    const modal = $('ios-install-modal');
+    if (modal) modal.classList.add('hidden');
   }
 
   function toBionic(text) {
@@ -314,6 +428,7 @@ const app = (() => {
 
   // ---- Init ----
   function init() {
+    setupPWA();
     if (loadUser()) {
       // Existing user
       checkWeekReset();
@@ -1358,6 +1473,7 @@ const app = (() => {
     if (state.calTimer) { clearInterval(state.calTimer); state.calTimer = null; }
     if (state.lgsTimer) { clearInterval(state.lgsTimer); state.lgsTimer = null; }
     if (state.bionicTimer) { clearInterval(state.bionicTimer); state.bionicTimer = null; }
+    releaseWakeLock();
   }
 
   function toggleSound() {
@@ -1398,6 +1514,9 @@ const app = (() => {
     updateGuidedSpeed,
     toggleSound,
     adjustFontSize,
+    promptInstall,
+    dismissPWA,
+    closeIosModal,
     nextQuestion,
     repeatExercise,
     confirmExit,

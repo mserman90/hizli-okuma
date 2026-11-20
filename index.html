@@ -2,10 +2,34 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#6C5CE7">
+  <meta name="description" content="Ortaokul öğrencilerine yönelik bilimsel temelli ve mobil uyumlu hızlı okuma kursu web uygulaması (LGS odaklı).">
+  
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="HızOku">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="application-name" content="HızOku">
+  <meta name="msapplication-TileColor" content="#6C5CE7">
+  <meta name="msapplication-tap-highlight" content="no">
+
+  <!-- Icons -->
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="HızOku – Hızlı Okuma Kursu">
+  <meta property="og:description" content="Ortaokul öğrencilerine yönelik bilimsel temelli, mobil uyumlu hızlı okuma kursu.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="icon-512.png">
+
   <title>HızOku – Hızlı Okuma Kursu</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -135,10 +159,31 @@
 
   <!-- ========== DASHBOARD ========== -->
   <div id="screen-dashboard" class="screen">
+    <!-- Offline Indicator Pill -->
+    <div id="offline-pill" class="offline-pill hidden">
+      <span>⚡</span> Çevrimdışı Mod (İnternetsiz Çalışıyor)
+    </div>
+
     <div class="quick-controls">
+      <button class="quick-btn hidden" id="btn-install-pwa" onclick="app.promptInstall()">📲 Yükle</button>
       <button class="quick-btn" id="btn-toggle-sound" onclick="app.toggleSound()">🔊 Ses: Açık</button>
       <button class="quick-btn" onclick="app.adjustFontSize(-0.1)">A-</button>
       <button class="quick-btn" onclick="app.adjustFontSize(0.1)">A+</button>
+    </div>
+
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="pwa-banner hidden">
+      <div class="pwa-banner-content">
+        <div class="pwa-icon">📲</div>
+        <div class="pwa-info">
+          <h4>Uygulamayı Telefona Yükle</h4>
+          <p>Ana ekrana ekle, internetsiz ortamda bile okuma hızını artırmaya devam et!</p>
+        </div>
+      </div>
+      <div class="pwa-banner-actions">
+        <button class="btn btn-sm btn-primary" onclick="app.promptInstall()">Hemen Yükle</button>
+        <button class="btn btn-sm btn-secondary" onclick="app.dismissPWA()">Daha Sonra</button>
+      </div>
     </div>
 
     <div class="dashboard-greeting">
@@ -588,8 +633,48 @@
 <!-- Confetti container -->
 <div class="confetti-container hidden" id="confetti-container"></div>
 
+<!-- iOS Install Instruction Modal -->
+<div id="ios-install-modal" class="modal-overlay hidden" onclick="app.closeIosModal(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>📲 Ana Ekrana Ekle (iPhone / iPad)</h3>
+      <button class="close-btn" onclick="app.closeIosModal()">✕</button>
+    </div>
+    <div class="ios-steps">
+      <div class="ios-step">
+        <span class="step-num">1</span>
+        <span>Safari alt çubuğundaki <strong>Paylaş</strong> (<span style="font-size:18px;">⬆️</span>) simgesine dokunun.</span>
+      </div>
+      <div class="ios-step">
+        <span class="step-num">2</span>
+        <span>Menüyü aşağı kaydırıp <strong>"Ana Ekrana Ekle"</strong> (➕) seçeneğini seçin.</span>
+      </div>
+      <div class="ios-step">
+        <span class="step-num">3</span>
+        <span>Sağ üstteki <strong>"Ekle"</strong> butonuna basın. Artık HızOku telefonunuzda bağımsız bir uygulama olarak çalışacaktır!</span>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-sm mt-16" onclick="app.closeIosModal()">Anladım 👍</button>
+  </div>
+</div>
+
 <script src="data.js"></script>
 <script src="app.js"></script>
+
+<!-- Service Worker Registration -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then((reg) => {
+          console.log('ServiceWorker registered with scope:', reg.scope);
+        })
+        .catch((err) => {
+          console.warn('ServiceWorker registration failed:', err);
+        });
+    });
+  }
+</script>
 
 </body>
 </html>

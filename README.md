@@ -32,9 +32,13 @@ Bu yaklaşım, okuma hızının anlama kaybı pahasına artırılmasını engell
 
 - **🌱 6 Seviyeli İlerleme:** Çaylak → Meraklı → Hızlı → Uzman → Usta → Efsane Okuyucu.
 - **🏆 14 Başarı Rozeti:** Gün serileri, anlama ustalığı, LGS tam isabet ve hız rekorları.
+- **📲 PWA (Progressive Web App):** Telefona veya tablete bir mobil uygulama gibi yüklenebilir (Android Chrome / iOS Safari "Ana Ekrana Ekle").
+- **⚡ %100 Çevrimdışı (Offline) Desteği:** Service Worker sayesinde internet bağlantısı olmadan bile tüm egzersizler, metinler ve anlama testleri eksiksiz çalışır.
+- **🔆 Ekran Uyanık Kalma (Wake Lock):** Okuma egzersizleri sırasında telefon ekranının kararmasını ve kilitlenmesini engeller.
+- **📳 Dokunsal Geri Bildirim (Haptic Feedback):** Soruları yanıtlarken ve seviye atlarken titreşimli geri bildirim sunar.
 - **📈 Görsel İlerleme Grafikleri:** HTML5 Canvas ile çizilen son 10 egzersizin hız ve anlama grafiği.
 - **🔊 Web Audio API Ses Sistemi:** Harici kütüphane gerektirmeyen, anında doğru/yanlış/kutlama ses efektleri (sessize alma destekli).
-- **👓 Mobil & Erişilebilirlik:** Tek dokunuşla font boyutu ölçekleme (A- / A+), tam responsive mobil tasarım.
+- **👓 Mobil & Erişilebilirlik:** Safe-area (çentik) uyumu, tek dokunuşla font boyutu ölçekleme (A- / A+), tam responsive mobil tasarım.
 - **📚 15 Özgün Metin & 45 Soru:** Bilim, Tarih, Doğa, Günlük Yaşam ve LGS Paragrafları.
 
 ---
