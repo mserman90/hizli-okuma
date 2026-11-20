@@ -248,19 +248,34 @@
 
     <div class="dashboard-modes-grid">
       <!-- Schulte Table Mode -->
-    <div class="mode-card" onclick="app.openSchulteScreen()">
-      <div class="mode-top">
-        <div class="mode-icon" style="background:rgba(9, 132, 227, 0.12)">🔢</div>
-        <div class="mode-info">
-          <h3>Şulte Tablosu (Göz Çevikliği)</h3>
-          <p>Periferik görüş ve görsel tarama antrenmanı</p>
+      <div class="mode-card" onclick="app.openSchulteScreen()">
+        <div class="mode-top">
+          <div class="mode-icon" style="background:rgba(9, 132, 227, 0.12)">🔢</div>
+          <div class="mode-info">
+            <h3>Şulte Tablosu (Göz Çevikliği)</h3>
+            <p>Periferik görüş ve görsel tarama antrenmanı</p>
+          </div>
+          <span class="badge badge-teal">Nöro-Göz</span>
         </div>
-        <span class="badge badge-teal">Nöro-Göz</span>
+        <div class="mode-desc">
+          <strong>🔬 Bu mod ne işe yarar?</strong> Klasik 5×5 sayı matrisiyle göz kaslarını ve çevresel görüş açını genişletir. Merkeze odaklanıp sayıları sırasıyla bularak, okuma sırasında sayfadaki kelimeleri tek bakışta algılama kabiliyetini artırır.
+        </div>
       </div>
-      <div class="mode-desc">
-        <strong>🔬 Bu mod ne işe yarar?</strong> Klasik 5×5 sayı matrisiyle göz kaslarını ve çevresel görüş açını genişletir. Merkeze odaklanıp sayıları sırasıyla bularak, okuma sırasında sayfadaki kelimeleri tek bakışta algılama kabiliyetini artırır.
+
+      <!-- Eye Gym Mode -->
+      <div class="mode-card" onclick="app.openEyeGymScreen()">
+        <div class="mode-top">
+          <div class="mode-icon" style="background:rgba(108, 92, 231, 0.15)">👁️⚡</div>
+          <div class="mode-info">
+            <h3>Göz Isınma Salonu</h3>
+            <p>Sakkadik sıçrama, piramit okuma & sonsuzluk</p>
+          </div>
+          <span class="badge badge-purple">Nöro-Optik</span>
+        </div>
+        <div class="mode-desc">
+          <strong>⚡ Göz Kasları Antrenmanı:</strong> Sınav veya kitap okuma öncesi göz kaslarını esneten yatay sakkad sıçramaları, görüş açını iki katına çıkaran genişleyen piramit blokları ve fiksasyon dinlendirici sonsuzluk takibi!
+        </div>
       </div>
-    </div>
 
     <!-- RSVP Mode -->
     <div class="mode-card" onclick="app.selectMode('rsvp')">
@@ -775,6 +790,86 @@
 
     <div class="schulte-tip-box mt-16 text-center">
       <small>💡 <strong>Göz Jimnastiği:</strong> Gözlerini ekranda sürekli gezdirmek yerine merkezdeki noktaya odaklanarak periferik (kenar) görüşünle sayıları fark etmeye çalış.</small>
+    </div>
+  </div>
+
+  <!-- ========== EYE GYM (GÖZ KASLARI & GÖRSEL SIÇRAMA ANTRENÖRÜ) ========== -->
+  <div id="screen-eye-gym" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.exitEyeGym()">←</button>
+      <h2>👁️ Göz Isınma Salonu</h2>
+      <button class="icon-btn" onclick="app.restartEyeGym()" title="Yeniden Başlat">🔄</button>
+    </div>
+
+    <!-- Science Info Banner -->
+    <div class="exercise-info-banner mb-12">
+      <span class="info-icon">⚡</span>
+      <span id="eye-gym-instruction"><strong>Sakkadik Sıçrama:</strong> Başını sabit tut! Yalnızca gözlerinle sıçrayan hedefi takip et. Satır başı ve sonuna sıçrama refleksini hızlandır.</span>
+    </div>
+
+    <!-- Mode Selector Tabs: Sakkad, Piramit, Sonsuzluk -->
+    <div class="schulte-toolbar card mb-12">
+      <div class="schulte-config-row">
+        <label style="font-weight:700; font-size:12.5px; color:var(--text); align-self:center;">Antrenman:</label>
+        <div class="btn-group-pill">
+          <button class="btn-pill active" id="eyegym-tab-saccade" onclick="app.setEyeGymMode('saccade')">⚡ Sakkad</button>
+          <button class="btn-pill" id="eyegym-tab-pyramid" onclick="app.setEyeGymMode('pyramid')">🔺 Piramit</button>
+          <button class="btn-pill" id="eyegym-tab-infinity" onclick="app.setEyeGymMode('infinity')">♾️ Sonsuzluk</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Speed / BPM Controller -->
+    <div class="card mb-12" style="padding:10px 14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-size:12px; font-weight:700; color:var(--text);">Tempo / Sıçrama Hızı:</span>
+        <span class="badge badge-purple" id="eyegym-speed-badge">100 BPM</span>
+      </div>
+      <div class="btn-group-pill" style="display:flex; width:100%; justify-content:space-between;">
+        <button class="btn-pill" id="eyegym-speed-60" onclick="app.setEyeGymSpeed(60)">Yavaş (60)</button>
+        <button class="btn-pill active" id="eyegym-speed-100" onclick="app.setEyeGymSpeed(100)">Orta (100)</button>
+        <button class="btn-pill" id="eyegym-speed-140" onclick="app.setEyeGymSpeed(140)">Hızlı (140)</button>
+        <button class="btn-pill" id="eyegym-speed-180" onclick="app.setEyeGymSpeed(180)">Şimşek (180)</button>
+      </div>
+    </div>
+
+    <!-- Arena Stage -->
+    <div class="card eye-gym-arena mb-16" id="eye-gym-arena">
+      <!-- 1. Saccade Jump Stage -->
+      <div id="eyegym-stage-saccade" class="eyegym-stage">
+        <div class="saccade-track">
+          <div class="saccade-point left" id="saccade-point-left">●</div>
+          <div class="saccade-point center" id="saccade-point-center">+</div>
+          <div class="saccade-point right" id="saccade-point-right">●</div>
+        </div>
+        <div class="saccade-jumper" id="saccade-jumper">🎯</div>
+      </div>
+
+      <!-- 2. Expanding Pyramid Reading Stage -->
+      <div id="eyegym-stage-pyramid" class="eyegym-stage hidden">
+        <div class="pyramid-axis-line"></div>
+        <div class="pyramid-rows-wrapper" id="pyramid-rows-wrapper">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- 3. Infinity Loop Stage -->
+      <div id="eyegym-stage-infinity" class="eyegym-stage hidden">
+        <svg class="infinity-svg-track" viewBox="0 0 320 160">
+          <path d="M 160,80 C 210,10 300,10 300,80 C 300,150 210,150 160,80 C 110,10 20,10 20,80 C 20,150 110,150 160,80 Z" fill="none" stroke="#E2E8F0" stroke-width="3" stroke-dasharray="6,6"/>
+        </svg>
+        <div class="infinity-ball" id="infinity-ball">💫</div>
+      </div>
+    </div>
+
+    <!-- Bottom Action Controls -->
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-primary" id="btn-eyegym-toggle" onclick="app.toggleEyeGymPlay()">
+        ▶️ Antrenmanı Başlat
+      </button>
+      <button class="btn btn-secondary" style="max-width:120px;" onclick="app.restartEyeGym()">
+        ⏱️ <span id="eyegym-timer-text">60</span>s
+      </button>
     </div>
   </div>
 

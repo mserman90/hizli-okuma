@@ -573,6 +573,7 @@ const BADGES = [
   { id: "effective_200", name: "Elmas Okuyucu", icon: "💠", description: "Etkili okuma hızı 200 KDK üstü", condition: (stats) => stats.bestEffective >= 200 },
   { id: "marathon_hero", name: "Maraton Şampiyonu", icon: "🥇", description: "LGS Paragraf Maratonunu tamamla", condition: (stats) => stats.marathonCompleted >= 1 },
   { id: "marathon_triple", name: "LGS Üçlemesi", icon: "🎖️", description: "3 farklı LGS Paragraf Denemesini tamamla", condition: (stats) => stats.marathonTripleCompleted },
+  { id: "eye_gym_master", name: "Şahin Bakış", icon: "🦅", description: "Göz Isınma Salonunda 3 antrenman tamamla", condition: (stats) => stats.eyeGymCompleted >= 3 },
 ];
 
 // Seviye sistemi
@@ -1100,5 +1101,6 @@ const LGS_MARATHON_EXAMS = [
 
 // Geriye dönük uyumluluk: İlk deneme soruları
 const LGS_MARATHON_QUESTIONS = LGS_MARATHON_EXAMS[0].questions;
+
 
 

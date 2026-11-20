@@ -2741,6 +2741,178 @@ button, .btn, .nav-item, .mode-card, .quiz-option, .text-select-item {
 }
 
 /* ============================================================
+   Eye Gym (Göz Kasları & Görsel Sıçrama Antrenörü) Styles
+   ============================================================ */
+
+.eye-gym-arena {
+  min-height: 290px;
+  height: 310px;
+  background: #FFFFFF;
+  border: 2px solid #E2E8F0;
+  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.eyegym-stage {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.eyegym-stage.hidden {
+  display: none !important;
+}
+
+/* Saccade Jump Stage */
+.saccade-track {
+  width: 88%;
+  max-width: 480px;
+  height: 80px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px dashed #CBD5E1;
+  padding: 0 16px;
+}
+
+.saccade-point {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #94A3B8;
+  font-weight: 800;
+  user-select: none;
+}
+
+.saccade-point.center {
+  color: #EF4444;
+  font-size: 22px;
+}
+
+.saccade-jumper {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 44px;
+  height: 44px;
+  margin-top: -22px;
+  margin-left: -22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  transition: transform 0.12s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  pointer-events: none;
+  filter: drop-shadow(0 4px 8px rgba(108, 92, 231, 0.35));
+}
+
+/* Expanding Pyramid Stage */
+.pyramid-axis-line {
+  position: absolute;
+  top: 15px;
+  bottom: 15px;
+  left: 50%;
+  width: 2px;
+  background: rgba(239, 68, 68, 0.28);
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.pyramid-rows-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  width: 100%;
+  padding: 10px 16px;
+  z-index: 2;
+}
+
+.pyramid-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #475569;
+  transition: all 0.18s ease;
+  user-select: none;
+}
+
+.pyramid-row.active {
+  background: rgba(108, 92, 231, 0.12);
+  color: var(--primary);
+  font-weight: 800;
+  transform: scale(1.05);
+}
+
+.pyramid-left-part, .pyramid-right-part {
+  flex: 1;
+  white-space: nowrap;
+}
+
+.pyramid-left-part {
+  text-align: right;
+}
+
+.pyramid-right-part {
+  text-align: left;
+}
+
+.pyramid-focal-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #EF4444;
+  flex-shrink: 0;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+  transition: transform 0.18s ease;
+}
+
+.pyramid-row.active .pyramid-focal-dot {
+  transform: scale(1.6);
+  background: var(--primary);
+  box-shadow: 0 0 10px rgba(108, 92, 231, 0.9);
+}
+
+/* Infinity Loop Stage */
+.infinity-svg-track {
+  width: 86%;
+  max-width: 360px;
+  height: auto;
+  position: absolute;
+  pointer-events: none;
+}
+
+.infinity-ball {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 28px;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 12px rgba(255, 165, 2, 0.5));
+  transition: transform 0.04s linear;
+}
+
+/* ============================================================
    Student Progress Report Card (PDF Karne) Styles
    ============================================================ */
 

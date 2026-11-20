@@ -57,6 +57,15 @@ const app = (() => {
     marathonTimeRemaining: 750,
     marathonStartTime: null,
     marathonTotalElapsedSec: 0,
+    eyeGymMode: 'saccade',
+    eyeGymSpeed: 100,
+    eyeGymIsRunning: false,
+    eyeGymTimeRemaining: 60,
+    eyeGymTimer: null,
+    eyeGymInterval: null,
+    eyeGymAnimFrame: null,
+    eyeGymPyramidIndex: 0,
+    eyeGymInfinityT: 0,
   };
 
   // ---- Storage ----
@@ -71,6 +80,7 @@ const app = (() => {
         if (state.user.marathonCompleted === undefined) state.user.marathonCompleted = 0;
         if (state.user.marathonBestNet === undefined) state.user.marathonBestNet = 0;
         if (!state.user.marathonExamScores) state.user.marathonExamScores = {};
+        if (state.user.eyeGymCompleted === undefined) state.user.eyeGymCompleted = 0;
         return true;
       }
     } catch (e) {}
@@ -103,6 +113,7 @@ const app = (() => {
       marathonCompleted: 0,
       marathonBestNet: 0,
       marathonExamScores: {},
+      eyeGymCompleted: 0,
     };
   }
 
@@ -1552,6 +1563,7 @@ const app = (() => {
     if (state.schulteTimerInterval) { clearInterval(state.schulteTimerInterval); state.schulteTimerInterval = null; }
     if (state.marathonTimer) { clearInterval(state.marathonTimer); state.marathonTimer = null; }
     state.schulteIsRunning = false;
+    stopEyeGym();
     stopMetronomeLoop();
     releaseWakeLock();
   }
@@ -2064,6 +2076,305 @@ const app = (() => {
   function closeSchulteModal(e) {
     if (e && e.target && e.target.id !== 'schulte-result-modal') return;
     $('schulte-result-modal')?.classList.add('hidden');
+  }
+
+  // ============================================================
+  // ---- Eye Gym (Göz Kasları & Görsel Sıçrama Antrenörü) ----
+  // ============================================================
+
+  const PYRAMID_DATA = [
+    { left: "bilim", right: "insan" },
+    { left: "hızlı", right: "okuma" },
+    { left: "kitap", right: "sayfası" },
+    { left: "anlayarak", right: "öğrenme" },
+    { left: "LGS paragraf", right: "soru çözümü" },
+    { left: "çevresel görüş", right: "alanını aç" },
+    { left: "odaklanma gücü", right: "başarı getirir" },
+    { left: "zihinsel çeviklik", right: "kalıcı hafıza" },
+  ];
+
+  let eyeGymSaccadePos = 0; // 0: left, 1: right, 2: center
+
+  function openEyeGymScreen() {
+    stopAllExercises();
+    showScreen('screen-eye-gym');
+    initEyeGymStages();
+  }
+
+  function initEyeGymStages() {
+    renderPyramidRows();
+    updateEyeGymUI();
+  }
+
+  function renderPyramidRows() {
+    const wrapper = $('pyramid-rows-wrapper');
+    if (!wrapper) return;
+    wrapper.innerHTML = '';
+
+    PYRAMID_DATA.forEach((row, idx) => {
+      const rowEl = document.createElement('div');
+      rowEl.className = `pyramid-row ${idx === state.eyeGymPyramidIndex ? 'active' : ''}`;
+      rowEl.id = `pyramid-row-${idx}`;
+      rowEl.innerHTML = `
+        <span class="pyramid-left-part">${row.left}</span>
+        <span class="pyramid-focal-dot"></span>
+        <span class="pyramid-right-part">${row.right}</span>
+      `;
+      wrapper.appendChild(rowEl);
+    });
+  }
+
+  function updateEyeGymUI() {
+    // Tab buttons
+    ['saccade', 'pyramid', 'infinity'].forEach(m => {
+      const btn = $(`eyegym-tab-${m}`);
+      if (btn) btn.classList.toggle('active', m === state.eyeGymMode);
+      const stage = $(`eyegym-stage-${m}`);
+      if (stage) stage.classList.toggle('hidden', m !== state.eyeGymMode);
+    });
+
+    // Speed buttons
+    [60, 100, 140, 180].forEach(s => {
+      const btn = $(`eyegym-speed-${s}`);
+      if (btn) btn.classList.toggle('active', s === state.eyeGymSpeed);
+    });
+
+    const speedBadge = $('eyegym-speed-badge');
+    if (speedBadge) {
+      const labels = { 60: 'Yavaş (60 BPM)', 100: 'Orta (100 BPM)', 140: 'Hızlı (140 BPM)', 180: 'Şimşek (180 BPM)' };
+      speedBadge.textContent = labels[state.eyeGymSpeed] || `${state.eyeGymSpeed} BPM`;
+    }
+
+    // Instruction banner
+    const inst = $('eye-gym-instruction');
+    if (inst) {
+      if (state.eyeGymMode === 'saccade') {
+        inst.innerHTML = '<strong>Sakkadik Sıçrama:</strong> Başını sabit tut! Yalnızca gözlerinle sıçrayan hedefi takip et. Satır başı ve sonuna sıçrama refleksini hızlandır.';
+      } else if (state.eyeGymMode === 'pyramid') {
+        inst.innerHTML = '<strong>Genişleyen Piramit:</strong> Bakışlarını ortadaki kırmızı noktaya kilitle! Aşağı indikçe kelimeleri yanlara bakmadan periferik görüşünle fark et.';
+      } else {
+        inst.innerHTML = '<strong>Sonsuzluk Takibi:</strong> Kayan ışık topunu gözlerinle pürüzsüzce izle. Göz kaslarını gevşet ve fiksasyon koordinasyonunu dinlendir.';
+      }
+    }
+
+    // Timer display
+    const timerText = $('eyegym-timer-text');
+    if (timerText) timerText.textContent = state.eyeGymTimeRemaining;
+
+    // Toggle button
+    const toggleBtn = $('btn-eyegym-toggle');
+    if (toggleBtn) {
+      if (state.eyeGymIsRunning) {
+        toggleBtn.innerHTML = '⏸️ Duraklat';
+        toggleBtn.className = 'btn btn-warning';
+      } else {
+        toggleBtn.innerHTML = state.eyeGymTimeRemaining < 60 ? '▶️ Devam Et' : '▶️ Antrenmanı Başlat';
+        toggleBtn.className = 'btn btn-primary';
+      }
+    }
+  }
+
+  function setEyeGymMode(mode) {
+    if (state.eyeGymMode === mode) return;
+    pauseEyeGym();
+    state.eyeGymMode = mode;
+    updateEyeGymUI();
+    playTone(480, 'sine', 0.05);
+  }
+
+  function setEyeGymSpeed(speed) {
+    state.eyeGymSpeed = parseInt(speed);
+    updateEyeGymUI();
+    playTone(560, 'sine', 0.05);
+    if (state.eyeGymIsRunning) {
+      startEyeGymLoop();
+    }
+  }
+
+  function toggleEyeGymPlay() {
+    if (state.eyeGymIsRunning) {
+      pauseEyeGym();
+    } else {
+      startEyeGym();
+    }
+  }
+
+  function startEyeGym() {
+    state.eyeGymIsRunning = true;
+    requestWakeLock();
+    updateEyeGymUI();
+
+    // Start 1-sec countdown timer
+    if (!state.eyeGymTimer) {
+      state.eyeGymTimer = setInterval(tickEyeGymTimer, 1000);
+    }
+
+    startEyeGymLoop();
+  }
+
+  function startEyeGymLoop() {
+    stopEyeGymLoop();
+
+    const bpm = state.eyeGymSpeed || 100;
+    const intervalMs = Math.round((60 / bpm) * 1000);
+
+    if (state.eyeGymMode === 'saccade') {
+      stepSaccade();
+      state.eyeGymInterval = setInterval(stepSaccade, intervalMs);
+    } else if (state.eyeGymMode === 'pyramid') {
+      stepPyramid();
+      state.eyeGymInterval = setInterval(stepPyramid, Math.max(300, Math.round(intervalMs * 1.4)));
+    } else if (state.eyeGymMode === 'infinity') {
+      runInfinityAnimation();
+    }
+  }
+
+  function stopEyeGymLoop() {
+    if (state.eyeGymInterval) {
+      clearInterval(state.eyeGymInterval);
+      state.eyeGymInterval = null;
+    }
+    if (state.eyeGymAnimFrame) {
+      cancelAnimationFrame(state.eyeGymAnimFrame);
+      state.eyeGymAnimFrame = null;
+    }
+  }
+
+  function stepSaccade() {
+    const jumper = $('saccade-jumper');
+    const track = document.querySelector('.saccade-track');
+    if (!jumper || !track) return;
+
+    const trackWidth = track.clientWidth || 300;
+    const leftX = 24;
+    const centerX = trackWidth / 2;
+    const rightX = trackWidth - 24;
+
+    // Sequence: Left -> Right -> Center -> Left ...
+    const positions = [leftX, rightX, centerX];
+    eyeGymSaccadePos = (eyeGymSaccadePos + 1) % positions.length;
+    const targetX = positions[eyeGymSaccadePos];
+
+    jumper.style.transform = `translate3d(${targetX}px, 0, 0)`;
+
+    // Gentle tone and haptic
+    playTone(680, 'triangle', 0.035);
+    triggerVibrate(12);
+  }
+
+  function stepPyramid() {
+    const total = PYRAMID_DATA.length;
+    state.eyeGymPyramidIndex = (state.eyeGymPyramidIndex + 1) % total;
+
+    for (let i = 0; i < total; i++) {
+      const row = $(`pyramid-row-${i}`);
+      if (row) {
+        row.classList.toggle('active', i === state.eyeGymPyramidIndex);
+      }
+    }
+
+    playTone(520 + (state.eyeGymPyramidIndex * 35), 'sine', 0.04);
+  }
+
+  function runInfinityAnimation() {
+    const ball = $('infinity-ball');
+    const arena = $('eye-gym-arena');
+    if (!ball || !arena) return;
+
+    let startTime = performance.now();
+    const speedFactor = (state.eyeGymSpeed / 100) * 0.0016;
+
+    function frame(now) {
+      if (!state.eyeGymIsRunning || state.eyeGymMode !== 'infinity') return;
+
+      const elapsed = (now - startTime);
+      state.eyeGymInfinityT += speedFactor * 16;
+      const t = state.eyeGymInfinityT;
+
+      const arenaW = arena.clientWidth || 340;
+      const arenaH = arena.clientHeight || 280;
+      const scaleX = Math.min(140, (arenaW * 0.42));
+      const scaleY = Math.min(65, (arenaH * 0.28));
+
+      // Lemniscate of Bernoulli: x = a*cos(t)/(1+sin^2(t)), y = a*sin(t)*cos(t)/(1+sin^2(t))
+      const sinT = Math.sin(t);
+      const cosT = Math.cos(t);
+      const denom = 1 + (sinT * sinT);
+
+      const x = (arenaW / 2) + (scaleX * cosT) / denom;
+      const y = (arenaH / 2) + (scaleY * sinT * cosT) / denom;
+
+      ball.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+      state.eyeGymAnimFrame = requestAnimationFrame(frame);
+    }
+
+    state.eyeGymAnimFrame = requestAnimationFrame(frame);
+  }
+
+  function tickEyeGymTimer() {
+    if (state.eyeGymTimeRemaining > 0) {
+      state.eyeGymTimeRemaining--;
+      const timerText = $('eyegym-timer-text');
+      if (timerText) timerText.textContent = state.eyeGymTimeRemaining;
+    } else {
+      finishEyeGym();
+    }
+  }
+
+  function finishEyeGym() {
+    pauseEyeGym();
+    state.eyeGymTimeRemaining = 60;
+    updateEyeGymUI();
+
+    // Reward XP
+    const xp = 15;
+    addXP(xp);
+
+    if (!state.user.eyeGymCompleted) state.user.eyeGymCompleted = 0;
+    state.user.eyeGymCompleted++;
+
+    // Badge Check: eye_gym_master
+    if (state.user.eyeGymCompleted >= 3 && !state.user.badges.includes('eye_gym_master')) {
+      state.user.badges.push('eye_gym_master');
+      state.newBadges.push('eye_gym_master');
+    }
+
+    saveUser();
+    soundCelebration();
+    triggerVibrate([50, 50, 100]);
+
+    alert('🦅 Tebrikler! 60 saniyelik göz kası antrenmanını başarıyla tamamladın (+15 XP). Gözlerin hızlı okuma ve LGS paragrafları için tam forma girdi!');
+  }
+
+  function pauseEyeGym() {
+    state.eyeGymIsRunning = false;
+    stopEyeGymLoop();
+    if (state.eyeGymTimer) {
+      clearInterval(state.eyeGymTimer);
+      state.eyeGymTimer = null;
+    }
+    releaseWakeLock();
+    updateEyeGymUI();
+  }
+
+  function stopEyeGym() {
+    pauseEyeGym();
+    state.eyeGymTimeRemaining = 60;
+    state.eyeGymPyramidIndex = 0;
+    state.eyeGymInfinityT = 0;
+    eyeGymSaccadePos = 0;
+    updateEyeGymUI();
+  }
+
+  function restartEyeGym() {
+    stopEyeGym();
+    startEyeGym();
+  }
+
+  function exitEyeGym() {
+    stopEyeGym();
+    goToDashboard();
   }
 
   // ============================================================
@@ -2998,6 +3309,12 @@ const app = (() => {
     setSchulteTheme,
     restartSchulte,
     closeSchulteModal,
+    openEyeGymScreen,
+    exitEyeGym,
+    setEyeGymMode,
+    setEyeGymSpeed,
+    toggleEyeGymPlay,
+    restartEyeGym,
     openReportCard,
     printReportCard,
     shareReportCard,
