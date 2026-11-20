@@ -2656,6 +2656,127 @@ button, .btn, .nav-item, .mode-card, .quiz-option, .text-select-item {
 }
 
 /* ============================================================
+   Acoustic Pacer & Subvocalization Metronome Styles
+   ============================================================ */
+
+.exercise-audio-pacer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(108, 92, 231, 0.06);
+  border: 1px solid rgba(108, 92, 231, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  margin-bottom: 12px;
+}
+
+.pacer-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  font-family: var(--font);
+  font-size: 12.5px;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.pacer-toggle-btn:hover {
+  background: rgba(108, 92, 231, 0.1);
+}
+
+.pacer-icon {
+  font-size: 15px;
+}
+
+.pacer-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #CBD5E1;
+  display: inline-block;
+  transition: background-color 0.2s, transform 0.1s;
+}
+
+.pacer-toggle-btn.active .pacer-pulse-dot {
+  background: #00B894;
+  box-shadow: 0 0 6px rgba(0, 184, 148, 0.6);
+}
+
+.pacer-pulse-dot.beat-pulse {
+  transform: scale(1.6);
+  background: #FFA502 !important;
+  box-shadow: 0 0 8px rgba(255, 165, 2, 0.9) !important;
+}
+
+.pacer-settings-btn {
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.pacer-settings-btn:hover {
+  border-color: var(--primary);
+  background: #F8FAFC;
+}
+
+/* Tone Selector in Modal */
+.metro-tone-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.metro-tone-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1.5px solid #E2E8F0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: #FFFFFF;
+  transition: all 0.15s ease;
+}
+
+.metro-tone-card .tone-icon {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.metro-tone-card strong {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.metro-tone-card small {
+  display: block;
+  font-size: 11.5px;
+  color: var(--text-light);
+}
+
+.metro-tone-card.selected {
+  border-color: var(--primary);
+  background: rgba(108, 92, 231, 0.06);
+  box-shadow: 0 2px 8px rgba(108, 92, 231, 0.12);
+}
+
+/* ============================================================
    @media print rules for Clean PDF Export
    ============================================================ */
 @media print {

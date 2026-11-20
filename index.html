@@ -170,6 +170,7 @@
       <button class="quick-btn hidden" id="btn-install-pwa" onclick="app.promptInstall()">📲 Yükle</button>
       <button class="quick-btn" onclick="app.openReportCard()">📄 Karne</button>
       <button class="quick-btn" id="btn-toggle-sound" onclick="app.toggleSound()">🔊 Ses: Açık</button>
+      <button class="quick-btn" id="btn-toggle-metronome" onclick="app.toggleMetronome()">🎵 Ritim: Kapalı</button>
       <button class="quick-btn" onclick="app.adjustFontSize(-0.1)">A-</button>
       <button class="quick-btn" onclick="app.adjustFontSize(0.1)">A+</button>
     </div>
@@ -523,6 +524,16 @@
       <div class="speed-value" id="rsvp-speed-label">200 KDK</div>
     </div>
 
+    <!-- Acoustic Pacer Bar -->
+    <div class="exercise-audio-pacer-bar">
+      <button class="pacer-toggle-btn" onclick="app.toggleMetronome()">
+        <span class="pacer-icon">🎵</span>
+        <span class="pacer-label">İç Ses Bastırıcı: <strong class="pacer-state-text">Kapalı</strong></span>
+        <span class="pacer-pulse-dot"></span>
+      </button>
+      <button class="pacer-settings-btn" onclick="app.openMetronomeSettings()" title="Ritim ve Tempo Ayarları">⚙️</button>
+    </div>
+
     <div class="rsvp-container">
       <div class="rsvp-word" id="rsvp-word">Hazır mısın?</div>
       <div class="rsvp-focus-line"></div>
@@ -558,6 +569,16 @@
       <div class="speed-value" id="visual-group-label">3 kelime</div>
     </div>
 
+    <!-- Acoustic Pacer Bar -->
+    <div class="exercise-audio-pacer-bar">
+      <button class="pacer-toggle-btn" onclick="app.toggleMetronome()">
+        <span class="pacer-icon">🎵</span>
+        <span class="pacer-label">İç Ses Bastırıcı: <strong class="pacer-state-text">Kapalı</strong></span>
+        <span class="pacer-pulse-dot"></span>
+      </button>
+      <button class="pacer-settings-btn" onclick="app.openMetronomeSettings()" title="Ritim ve Tempo Ayarları">⚙️</button>
+    </div>
+
     <div class="visual-field-container">
       <div class="visual-field-word-group" id="visual-word-group">Hazır mısın?</div>
       <div class="rsvp-progress-bar mt-20">
@@ -582,6 +603,16 @@
       <label>Hız:</label>
       <input type="range" id="guided-speed" min="100" max="500" step="25" value="180" oninput="app.updateGuidedSpeed(this.value)">
       <div class="speed-value" id="guided-speed-label">180 KDK</div>
+    </div>
+
+    <!-- Acoustic Pacer Bar -->
+    <div class="exercise-audio-pacer-bar">
+      <button class="pacer-toggle-btn" onclick="app.toggleMetronome()">
+        <span class="pacer-icon">🎵</span>
+        <span class="pacer-label">İç Ses Bastırıcı: <strong class="pacer-state-text">Kapalı</strong></span>
+        <span class="pacer-pulse-dot"></span>
+      </button>
+      <button class="pacer-settings-btn" onclick="app.openMetronomeSettings()" title="Ritim ve Tempo Ayarları">⚙️</button>
     </div>
 
     <div class="guided-container">
@@ -613,6 +644,15 @@
     </div>
 
     <div class="reading-container">
+      <!-- Acoustic Pacer Bar -->
+      <div class="exercise-audio-pacer-bar mb-10">
+        <button class="pacer-toggle-btn" onclick="app.toggleMetronome()">
+          <span class="pacer-icon">🎵</span>
+          <span class="pacer-label">İç Ses Bastırıcı: <strong class="pacer-state-text">Kapalı</strong></span>
+          <span class="pacer-pulse-dot"></span>
+        </button>
+        <button class="pacer-settings-btn" onclick="app.openMetronomeSettings()" title="Ritim ve Tempo Ayarları">⚙️</button>
+      </div>
       <div class="reading-timer" id="lgs-timer">⏱️ <span>0 saniye</span> · Hedef: 75 sn</div>
       <div class="reading-title" id="lgs-title">Paragraf Başlığı</div>
       <div class="reading-meta" id="lgs-meta"></div>
@@ -639,6 +679,15 @@
     </div>
 
     <div class="reading-container">
+      <!-- Acoustic Pacer Bar -->
+      <div class="exercise-audio-pacer-bar mb-10">
+        <button class="pacer-toggle-btn" onclick="app.toggleMetronome()">
+          <span class="pacer-icon">🎵</span>
+          <span class="pacer-label">İç Ses Bastırıcı: <strong class="pacer-state-text">Kapalı</strong></span>
+          <span class="pacer-pulse-dot"></span>
+        </button>
+        <button class="pacer-settings-btn" onclick="app.openMetronomeSettings()" title="Ritim ve Tempo Ayarları">⚙️</button>
+      </div>
       <div class="reading-timer" id="bionic-timer">⏱️ <span>0 saniye</span></div>
       <div class="reading-title" id="bionic-title">Metin Başlığı</div>
       <div class="reading-meta" id="bionic-meta"></div>
@@ -1082,6 +1131,73 @@
       <button class="btn btn-secondary" onclick="app.closeReportCard()">Kapat ✕</button>
     </div>
 
+  </div>
+</div>
+
+<!-- Metronome & Subvocalization Settings Modal -->
+<div id="metronome-settings-modal" class="modal-overlay hidden" onclick="app.closeMetronomeSettings(event)">
+  <div class="modal-card" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🎵 İç Ses Bastırıcı (Akustik Ritim)</h3>
+      <button class="close-btn" onclick="app.closeMetronomeSettings()">✕</button>
+    </div>
+
+    <div class="card mb-12" style="background:#F8F9FE; font-size:12.5px; color:var(--text-light); line-height:1.5;">
+      🔬 <strong>Bilimsel Temel:</strong> Hızlı okumanın önündeki en büyük engel kelimeleri zihinde seslendirmektir (subvokalizasyon). Ritmik metronom vuruşları işitsel döngüyü meşgul ederek kelimeleri konuşma hızında hecelemek yerine doğrudan gözle anlamlandırmayı öğretir.
+    </div>
+
+    <div class="form-group mb-16">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <label style="font-weight:700; font-size:13.5px;">Ritim Durumu:</label>
+        <button class="btn btn-sm btn-outline" id="metro-modal-toggle" onclick="app.toggleMetronome()">
+          Kapalı ⚪
+        </button>
+      </div>
+    </div>
+
+    <div class="form-group mb-16">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <label style="font-weight:700; font-size:13px;">Tempo (BPM):</label>
+        <span style="font-weight:800; color:var(--primary); font-size:14px;" id="metro-bpm-val">180 BPM</span>
+      </div>
+      <input type="range" id="metro-bpm-slider" min="100" max="320" step="10" value="180" oninput="app.updateMetronomeBPM(this.value)">
+      <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-light); margin-top:2px;">
+        <span>Yavaş (100)</span>
+        <span>Standart (180)</span>
+        <span>Hızlı (320)</span>
+      </div>
+    </div>
+
+    <div class="form-group mb-16">
+      <label style="font-weight:700; font-size:13px; display:block; margin-bottom:8px;">Akustik Tını Seçimi:</label>
+      <div class="metro-tone-grid">
+        <label class="metro-tone-card selected" id="metro-tone-card-wood" onclick="app.setMetronomeTone('wood')">
+          <span class="tone-icon">🪵</span>
+          <strong>Klasik Tik-Tak</strong>
+          <small>Net ahşap metronom klikleri</small>
+        </label>
+        <label class="metro-tone-card" id="metro-tone-card-pulse" onclick="app.setMetronomeTone('pulse')">
+          <span class="tone-icon">⚡</span>
+          <strong>432 Hz Odak Nabzı</strong>
+          <small>Sakinleştirici alfa frekansı</small>
+        </label>
+        <label class="metro-tone-card" id="metro-tone-card-drop" onclick="app.setMetronomeTone('drop')">
+          <span class="tone-icon">💧</span>
+          <strong>Zen Su Damlası</strong>
+          <small>Yumuşak akustik pacer</small>
+        </label>
+      </div>
+    </div>
+
+    <div class="metro-test-row mb-16" style="display:flex; gap:10px;">
+      <button class="btn btn-secondary btn-block" id="btn-test-metronome" onclick="app.testMetronomeClick()">
+        🔔 Tınıyı Dinle
+      </button>
+    </div>
+
+    <button class="btn btn-primary btn-block" onclick="app.closeMetronomeSettings()">
+      Tamam 👍
+    </button>
   </div>
 </div>
 

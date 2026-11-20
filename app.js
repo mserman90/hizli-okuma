@@ -44,6 +44,10 @@ const app = (() => {
     schulteTimerInterval: null,
     schulteStartTime: null,
     schulteIsRunning: false,
+    metronomeEnabled: false,
+    metronomeBPM: 180,
+    metronomeTone: 'wood',
+    metronomeInterval: null,
   };
 
   // ---- Storage ----
@@ -816,6 +820,7 @@ const app = (() => {
     $('rsvp-speed').disabled = true;
 
     showCountdown(() => {
+      if (state.metronomeEnabled) startMetronomeLoop();
       const interval = 60000 / state.rsvpSpeed; // ms per word
 
       state.rsvpInterval = setInterval(() => {
@@ -834,6 +839,7 @@ const app = (() => {
   }
 
   function pauseRSVP() {
+    stopMetronomeLoop();
     if (state.rsvpInterval) {
       clearInterval(state.rsvpInterval);
       state.rsvpInterval = null;
@@ -844,6 +850,7 @@ const app = (() => {
   }
 
   function resumeRSVP() {
+    if (state.metronomeEnabled) startMetronomeLoop();
     $('rsvp-start-btn').textContent = '⏸️ Duraklat';
     $('rsvp-start-btn').onclick = () => pauseRSVP();
     $('rsvp-speed').disabled = true;
@@ -903,6 +910,7 @@ const app = (() => {
     $('visual-group').disabled = true;
 
     showCountdown(() => {
+      if (state.metronomeEnabled) startMetronomeLoop();
       const wordsPerSecond = state.visualSpeed / 60;
       const groupInterval = (groupSize / wordsPerSecond) * 1000;
 
@@ -923,6 +931,7 @@ const app = (() => {
   }
 
   function pauseVisual() {
+    stopMetronomeLoop();
     if (state.visualInterval) {
       clearInterval(state.visualInterval);
       state.visualInterval = null;
@@ -934,6 +943,7 @@ const app = (() => {
   }
 
   function resumeVisual() {
+    if (state.metronomeEnabled) startMetronomeLoop();
     $('visual-start-btn').textContent = '⏸️ Duraklat';
     $('visual-start-btn').onclick = () => pauseVisual();
     $('visual-speed').disabled = true;
@@ -998,6 +1008,7 @@ const app = (() => {
     $('guided-speed').disabled = true;
 
     showCountdown(() => {
+      if (state.metronomeEnabled) startMetronomeLoop();
       const interval = 60000 / state.guidedSpeed;
 
       state.guidedInterval = setInterval(() => {
@@ -1034,6 +1045,7 @@ const app = (() => {
   }
 
   function pauseGuided() {
+    stopMetronomeLoop();
     if (state.guidedInterval) {
       clearInterval(state.guidedInterval);
       state.guidedInterval = null;
@@ -1044,6 +1056,7 @@ const app = (() => {
   }
 
   function resumeGuided() {
+    if (state.metronomeEnabled) startMetronomeLoop();
     $('guided-start-btn').textContent = '⏸️ Duraklat';
     $('guided-start-btn').onclick = () => pauseGuided();
     $('guided-speed').disabled = true;
@@ -1096,6 +1109,7 @@ const app = (() => {
     state.lgsStartTime = Date.now();
     $('lgs-timer').innerHTML = `⏱️ <span>0 saniye</span> · Hedef: 75 sn`;
     if (state.lgsTimer) clearInterval(state.lgsTimer);
+    if (state.metronomeEnabled) startMetronomeLoop();
     state.lgsTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - state.lgsStartTime) / 1000);
       const color = elapsed > 75 ? '#E17055' : 'var(--primary)';
@@ -1104,6 +1118,7 @@ const app = (() => {
   }
 
   function finishLGSReading() {
+    stopMetronomeLoop();
     if (state.lgsTimer) {
       clearInterval(state.lgsTimer);
       state.lgsTimer = null;
@@ -1124,6 +1139,7 @@ const app = (() => {
     state.bionicStartTime = Date.now();
     $('bionic-timer').innerHTML = `⏱️ <span>0 saniye</span>`;
     if (state.bionicTimer) clearInterval(state.bionicTimer);
+    if (state.metronomeEnabled) startMetronomeLoop();
     state.bionicTimer = setInterval(() => {
       const elapsed = Math.floor((Date.now() - state.bionicStartTime) / 1000);
       $('bionic-timer').innerHTML = `⏱️ <span>${elapsed} saniye</span>`;
@@ -1131,6 +1147,7 @@ const app = (() => {
   }
 
   function finishBionicReading() {
+    stopMetronomeLoop();
     if (state.bionicTimer) {
       clearInterval(state.bionicTimer);
       state.bionicTimer = null;
@@ -1144,6 +1161,7 @@ const app = (() => {
 
   // ---- Finish Exercise → Quiz ----
   function finishExercise() {
+    stopMetronomeLoop();
     state.quizIndex = 0;
     state.quizCorrect = 0;
     state.quizTotal = state.currentText.questions.length;
@@ -1518,6 +1536,7 @@ const app = (() => {
     if (state.bionicTimer) { clearInterval(state.bionicTimer); state.bionicTimer = null; }
     if (state.schulteTimerInterval) { clearInterval(state.schulteTimerInterval); state.schulteTimerInterval = null; }
     state.schulteIsRunning = false;
+    stopMetronomeLoop();
     releaseWakeLock();
   }
 
@@ -2199,6 +2218,177 @@ const app = (() => {
     $('report-card-modal')?.classList.add('hidden');
   }
 
+  // ============================================================
+  // ---- Acoustic Pacer / Subvocalization Metronome Module ----
+  // ============================================================
+
+  function playMetronomeClick() {
+    if (!state.soundEnabled || !state.metronomeEnabled) return;
+    try {
+      const ctx = getAudioContext();
+      if (!ctx) return;
+      if (ctx.state === 'suspended') ctx.resume();
+
+      const t = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      switch (state.metronomeTone) {
+        case 'pulse': // 432 Hz alpha wave focus pulse
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(432, t);
+          gain.gain.setValueAtTime(0.12, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.08);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.085);
+          break;
+
+        case 'drop': // Water drop sweep
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(750, t);
+          osc.frequency.exponentialRampToValueAtTime(1400, t + 0.04);
+          gain.gain.setValueAtTime(0.09, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.055);
+          break;
+
+        case 'wood': // Classic woodblock click (default)
+        default:
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(1050, t);
+          gain.gain.setValueAtTime(0.11, t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.025);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start(t);
+          osc.stop(t + 0.03);
+          break;
+      }
+
+      // Visual pulse
+      triggerVisualBeat();
+    } catch (e) {}
+  }
+
+  function triggerVisualBeat() {
+    const dots = $$('.pacer-pulse-dot');
+    dots.forEach(d => {
+      d.classList.add('beat-pulse');
+      setTimeout(() => d.classList.remove('beat-pulse'), 70);
+    });
+  }
+
+  function startMetronomeLoop() {
+    stopMetronomeLoop();
+    if (!state.metronomeEnabled) return;
+
+    const bpm = state.metronomeBPM || 180;
+    const intervalMs = Math.max(100, Math.round((60 / bpm) * 1000));
+
+    playMetronomeClick();
+    state.metronomeInterval = setInterval(() => {
+      playMetronomeClick();
+    }, intervalMs);
+  }
+
+  function stopMetronomeLoop() {
+    if (state.metronomeInterval) {
+      clearInterval(state.metronomeInterval);
+      state.metronomeInterval = null;
+    }
+  }
+
+  function toggleMetronome() {
+    state.metronomeEnabled = !state.metronomeEnabled;
+
+    // Update Dashboard Quick Button
+    const dashBtn = $('btn-toggle-metronome');
+    if (dashBtn) {
+      dashBtn.textContent = state.metronomeEnabled ? '🎵 Ritim: Açık' : '🎵 Ritim: Kapalı';
+      dashBtn.style.color = state.metronomeEnabled ? 'var(--primary)' : '';
+    }
+
+    // Update Exercise Pacer Bars
+    $$('.pacer-toggle-btn').forEach(btn => {
+      btn.classList.toggle('active', state.metronomeEnabled);
+      const text = btn.querySelector('.pacer-state-text');
+      if (text) text.textContent = state.metronomeEnabled ? 'Açık 🟢' : 'Kapalı';
+    });
+
+    // Update Modal Toggle
+    const modalBtn = $('metro-modal-toggle');
+    if (modalBtn) {
+      modalBtn.textContent = state.metronomeEnabled ? 'Açık 🟢' : 'Kapalı ⚪';
+      modalBtn.className = state.metronomeEnabled ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+    }
+
+    // If enabled, play sound sample or start loop if an exercise is active
+    if (state.metronomeEnabled) {
+      playMetronomeClick();
+      const inExercise = state.rsvpInterval || state.visualInterval || state.guidedInterval || state.lgsTimer || state.bionicTimer;
+      if (inExercise) {
+        startMetronomeLoop();
+      }
+    } else {
+      stopMetronomeLoop();
+    }
+  }
+
+  function openMetronomeSettings() {
+    const slider = $('metro-bpm-slider');
+    const val = $('metro-bpm-val');
+    if (slider) slider.value = state.metronomeBPM || 180;
+    if (val) val.textContent = `${state.metronomeBPM || 180} BPM`;
+
+    const modalBtn = $('metro-modal-toggle');
+    if (modalBtn) {
+      modalBtn.textContent = state.metronomeEnabled ? 'Açık 🟢' : 'Kapalı ⚪';
+      modalBtn.className = state.metronomeEnabled ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-outline';
+    }
+
+    setMetronomeTone(state.metronomeTone || 'wood', false);
+    $('metronome-settings-modal')?.classList.remove('hidden');
+  }
+
+  function closeMetronomeSettings(e) {
+    if (e && e.target && e.target.id !== 'metronome-settings-modal') return;
+    $('metronome-settings-modal')?.classList.add('hidden');
+  }
+
+  function updateMetronomeBPM(bpm) {
+    state.metronomeBPM = parseInt(bpm);
+    const label = $('metro-bpm-val');
+    if (label) label.textContent = `${bpm} BPM`;
+
+    if (state.metronomeInterval) {
+      startMetronomeLoop();
+    }
+  }
+
+  function setMetronomeTone(tone, playSample = true) {
+    state.metronomeTone = tone;
+    ['wood', 'pulse', 'drop'].forEach(t => {
+      const card = $(`metro-tone-card-${t}`);
+      if (card) card.classList.toggle('selected', t === tone);
+    });
+
+    if (playSample) {
+      testMetronomeClick();
+    }
+  }
+
+  function testMetronomeClick() {
+    const prevEnabled = state.metronomeEnabled;
+    state.metronomeEnabled = true;
+    playMetronomeClick();
+    state.metronomeEnabled = prevEnabled;
+  }
+
   function confirmExit() {
     if (confirm('Egzersizden çıkmak istediğine emin misin? İlerleme kaydedilmeyecek.')) {
       stopAllExercises();
@@ -2254,6 +2444,12 @@ const app = (() => {
     printReportCard,
     shareReportCard,
     closeReportCard,
+    toggleMetronome,
+    openMetronomeSettings,
+    closeMetronomeSettings,
+    updateMetronomeBPM,
+    setMetronomeTone,
+    testMetronomeClick,
   };
 })();
 
