@@ -244,6 +244,21 @@
 
     <h3 class="section-title">🎯 Egzersiz Modları</h3>
 
+    <!-- Schulte Table Mode -->
+    <div class="mode-card" onclick="app.openSchulteScreen()">
+      <div class="mode-top">
+        <div class="mode-icon" style="background:rgba(9, 132, 227, 0.12)">🔢</div>
+        <div class="mode-info">
+          <h3>Şulte Tablosu (Göz Çevikliği)</h3>
+          <p>Periferik görüş ve görsel tarama antrenmanı</p>
+        </div>
+        <span class="badge badge-teal">Nöro-Göz</span>
+      </div>
+      <div class="mode-desc">
+        <strong>🔬 Bu mod ne işe yarar?</strong> Klasik 5×5 sayı matrisiyle göz kaslarını ve çevresel görüş açını genişletir. Merkeze odaklanıp sayıları sırasıyla bularak, okuma sırasında sayfadaki kelimeleri tek bakışta algılama kabiliyetini artırır.
+      </div>
+    </div>
+
     <!-- RSVP Mode -->
     <div class="mode-card" onclick="app.selectMode('rsvp')">
       <div class="mode-top">
@@ -632,6 +647,70 @@
     <button class="btn btn-primary" onclick="app.finishBionicReading()">✅ Okudum, Teste Geç!</button>
   </div>
 
+  <!-- ========== SCHULTE TABLE SCREEN ========== -->
+  <div id="screen-schulte" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.exitSchulte()">←</button>
+      <h2>🔢 Şulte Tablosu</h2>
+      <button class="icon-btn" onclick="app.restartSchulte()" title="Yeniden Başlat">🔄</button>
+    </div>
+
+    <!-- Science Info Banner -->
+    <div class="exercise-info-banner mb-12">
+      <span class="info-icon">🎯</span>
+      <span><strong>Gözünü merkeze sabitle!</strong> Sayıları 1'den başlayarak sırayla bul ve dokun. Çevresel görüşünü genişlet.</span>
+    </div>
+
+    <!-- Controls & Config Bar -->
+    <div class="schulte-toolbar card mb-12">
+      <div class="schulte-config-row">
+        <div class="schulte-size-picker">
+          <label>Boyut:</label>
+          <div class="btn-group-pill">
+            <button class="btn-pill" id="schulte-size-3" onclick="app.setSchulteSize(3)">3×3</button>
+            <button class="btn-pill" id="schulte-size-4" onclick="app.setSchulteSize(4)">4×4</button>
+            <button class="btn-pill active" id="schulte-size-5" onclick="app.setSchulteSize(5)">5×5</button>
+          </div>
+        </div>
+
+        <div class="schulte-theme-picker">
+          <label>Stil:</label>
+          <div class="btn-group-pill">
+            <button class="btn-pill active" id="schulte-theme-classic" onclick="app.setSchulteTheme('classic')">Klasik</button>
+            <button class="btn-pill" id="schulte-theme-color" onclick="app.setSchulteTheme('color')">Renkli</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Status HUD -->
+    <div class="schulte-hud mb-12">
+      <div class="hud-target">
+        <span class="hud-label">SIRADAKİ SAYI</span>
+        <div class="hud-target-number" id="schulte-target-num">1</div>
+      </div>
+      <div class="hud-timer">
+        <span class="hud-label">SÜRE</span>
+        <div class="hud-timer-display" id="schulte-timer">00:00.0</div>
+      </div>
+      <div class="hud-best">
+        <span class="hud-label">EN İYİ</span>
+        <div class="hud-best-display" id="schulte-best-time">—</div>
+      </div>
+    </div>
+
+    <!-- The Grid Container -->
+    <div class="schulte-board-wrapper">
+      <div class="schulte-grid size-5" id="schulte-grid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+
+    <div class="schulte-tip-box mt-16 text-center">
+      <small>💡 <strong>Göz Jimnastiği:</strong> Gözlerini ekranda sürekli gezdirmek yerine merkezdeki noktaya odaklanarak periferik (kenar) görüşünle sayıları fark etmeye çalış.</small>
+    </div>
+  </div>
+
   <!-- ========== COMPREHENSION QUIZ ========== -->
   <div id="screen-quiz" class="screen">
     <div class="top-bar">
@@ -801,6 +880,42 @@
 
 <!-- Confetti container -->
 <div class="confetti-container hidden" id="confetti-container"></div>
+
+<!-- Schulte Results Modal -->
+<div id="schulte-result-modal" class="modal-overlay hidden" onclick="app.closeSchulteModal(event)">
+  <div class="modal-card text-center" onclick="event.stopPropagation()">
+    <div class="result-emoji" id="schulte-result-emoji">⚡</div>
+    <h3 id="schulte-result-title" style="font-size:20px; font-weight:800; margin-bottom:4px;">Harika Görüş!</h3>
+    <p id="schulte-result-subtitle" style="font-size:13px; color:var(--text-light); margin-bottom:16px;">Şulte tablosunu başarıyla tamamladın.</p>
+
+    <div class="results-stats mb-16">
+      <div class="result-stat">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value" id="schulte-stat-time">0.0s</div>
+        <div class="stat-label">Toplam Süre</div>
+      </div>
+      <div class="result-stat">
+        <div class="stat-icon">🚀</div>
+        <div class="stat-value" id="schulte-stat-speed">0.0s</div>
+        <div class="stat-label">Sayı Başına Hız</div>
+      </div>
+      <div class="result-stat highlight">
+        <div class="stat-icon">🏅</div>
+        <div class="stat-value" id="schulte-stat-xp">+20 XP</div>
+        <div class="stat-label">Kazanılan XP</div>
+      </div>
+    </div>
+
+    <div id="schulte-record-badge" class="schulte-record-pill hidden mb-16">
+      🎉 YENİ KİŞİSEL REKOR!
+    </div>
+
+    <div class="modal-actions" style="display:flex; gap:10px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="app.restartSchulte()">Tekrar Oyna 🔄</button>
+      <button class="btn btn-secondary" style="flex:1;" onclick="app.exitSchulte()">Ana Sayfa 🏠</button>
+    </div>
+  </div>
+</div>
 
 <!-- iOS Install Instruction Modal -->
 <div id="ios-install-modal" class="modal-overlay hidden" onclick="app.closeIosModal(event)">

@@ -2110,3 +2110,241 @@ button, .btn, .nav-item, .mode-card, .quiz-option, .text-select-item {
   font-weight: 700;
 }
 
+/* ============================================================
+   Schulte Table (Şulte Tablosu) Styles
+   ============================================================ */
+
+.schulte-toolbar {
+  padding: 10px 14px;
+}
+
+.schulte-config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.schulte-size-picker, .schulte-theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.schulte-size-picker label, .schulte-theme-picker label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-light);
+  text-transform: uppercase;
+}
+
+.btn-group-pill {
+  display: inline-flex;
+  background: #EDF2F7;
+  border-radius: var(--radius-full);
+  padding: 3px;
+  gap: 2px;
+}
+
+.btn-pill {
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+
+.btn-pill.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  box-shadow: 0 2px 6px rgba(108, 92, 231, 0.3);
+}
+
+/* Schulte HUD */
+.schulte-hud {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.hud-target, .hud-timer, .hud-best {
+  background: white;
+  border-radius: var(--radius-sm);
+  padding: 10px 8px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.hud-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-light);
+  letter-spacing: 0.5px;
+  margin-bottom: 2px;
+}
+
+.hud-target {
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.08) 0%, rgba(108, 92, 231, 0.16) 100%);
+  border: 1.5px solid rgba(108, 92, 231, 0.25);
+}
+
+.hud-target-number {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--primary);
+  line-height: 1;
+}
+
+.hud-timer-display {
+  font-size: 20px;
+  font-weight: 800;
+  font-family: monospace;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.hud-best-display {
+  font-size: 15px;
+  font-weight: 700;
+  color: #FFA502;
+  line-height: 1.4;
+}
+
+/* Schulte Board Wrapper & Grid */
+.schulte-board-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 6px 0 12px;
+}
+
+.schulte-grid {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1 / 1;
+  background: white;
+  padding: 10px;
+  border-radius: var(--radius);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 2px solid #E2E8F0;
+  touch-action: manipulation;
+  user-select: none;
+}
+
+.schulte-grid.size-3 {
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.schulte-grid.size-4 {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.schulte-grid.size-5 {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+/* Schulte Cells */
+.schulte-cell {
+  background: #F8F9FE;
+  border: 1.5px solid #CBD5E1;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #1E293B;
+  cursor: pointer;
+  transition: transform 0.1s ease, background-color 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.schulte-grid.size-3 .schulte-cell {
+  font-size: 32px;
+  border-radius: 14px;
+}
+
+.schulte-grid.size-4 .schulte-cell {
+  font-size: 26px;
+  border-radius: 12px;
+}
+
+.schulte-grid.size-5 .schulte-cell {
+  font-size: 22px;
+  border-radius: 9px;
+}
+
+.schulte-cell:hover {
+  background: #EEF2FF;
+  border-color: var(--primary);
+}
+
+.schulte-cell:active {
+  transform: scale(0.92);
+}
+
+/* Correct and Wrong Animation States */
+.schulte-cell.cell-correct {
+  background: #00B894 !important;
+  color: #FFFFFF !important;
+  border-color: #00B894 !important;
+  transform: scale(0.96);
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.schulte-cell.cell-wrong {
+  animation: cellShake 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  background: #FF7675 !important;
+  color: #FFFFFF !important;
+  border-color: #D63031 !important;
+}
+
+@keyframes cellShake {
+  10%, 90% { transform: translate3d(-3px, 0, 0); }
+  20%, 80% { transform: translate3d(4px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(3px, 0, 0); }
+}
+
+/* Color Theme */
+.schulte-grid.theme-color .schulte-cell:nth-child(5n+1) { background: #FFEAA7; color: #6C5CE7; }
+.schulte-grid.theme-color .schulte-cell:nth-child(5n+2) { background: #81ECEC; color: #2D3436; }
+.schulte-grid.theme-color .schulte-cell:nth-child(5n+3) { background: #FAB1A0; color: #2D3436; }
+.schulte-grid.theme-color .schulte-cell:nth-child(5n+4) { background: #DFE6E9; color: #0984E3; }
+.schulte-grid.theme-color .schulte-cell:nth-child(5n+5) { background: #DFF9FB; color: #6C5CE7; }
+
+/* Tip Box & Record Pill */
+.schulte-tip-box {
+  background: rgba(108, 92, 231, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  color: var(--text-light);
+  line-height: 1.45;
+}
+
+.schulte-record-pill {
+  background: linear-gradient(135deg, #FFA502 0%, #FFD32A 100%);
+  color: #2D1BA4;
+  font-weight: 800;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  display: inline-block;
+  box-shadow: 0 4px 15px rgba(255, 165, 2, 0.4);
+}
+
+

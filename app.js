@@ -38,6 +38,12 @@ const app = (() => {
     isIos: false,
     lastExerciseMode: null,
     newBadges: [],
+    schulteSize: 5,
+    schulteTheme: 'classic',
+    schulteNext: 1,
+    schulteTimerInterval: null,
+    schulteStartTime: null,
+    schulteIsRunning: false,
   };
 
   // ---- Storage ----
@@ -47,6 +53,8 @@ const app = (() => {
       if (data) {
         state.user = JSON.parse(data);
         if (!state.user.customTexts) state.user.customTexts = [];
+        if (!state.user.schulteBestTime) state.user.schulteBestTime = { 3: null, 4: null, 5: null };
+        if (state.user.schulteCompleted === undefined) state.user.schulteCompleted = 0;
         return true;
       }
     } catch (e) {}
@@ -74,6 +82,8 @@ const app = (() => {
       createdAt: new Date().toISOString(),
       usedModes: [],
       customTexts: [],
+      schulteBestTime: { 3: null, 4: null, 5: null },
+      schulteCompleted: 0,
     };
   }
 
@@ -1506,6 +1516,8 @@ const app = (() => {
     if (state.calTimer) { clearInterval(state.calTimer); state.calTimer = null; }
     if (state.lgsTimer) { clearInterval(state.lgsTimer); state.lgsTimer = null; }
     if (state.bionicTimer) { clearInterval(state.bionicTimer); state.bionicTimer = null; }
+    if (state.schulteTimerInterval) { clearInterval(state.schulteTimerInterval); state.schulteTimerInterval = null; }
+    state.schulteIsRunning = false;
     releaseWakeLock();
   }
 
@@ -1818,6 +1830,207 @@ const app = (() => {
     renderSavedCustomTexts();
   }
 
+  // ============================================================
+  // ---- Schulte Table (Şulte Tablosu) Module ----
+  // ============================================================
+
+  function openSchulteScreen() {
+    state.schulteSize = state.schulteSize || 5;
+    state.schulteTheme = state.schulteTheme || 'classic';
+    showScreen('screen-schulte');
+    initSchulteGrid();
+  }
+
+  function exitSchulte() {
+    stopSchulteTimer();
+    closeSchulteModal();
+    goToDashboard();
+  }
+
+  function setSchulteSize(size) {
+    state.schulteSize = size;
+    [3, 4, 5].forEach(s => {
+      const btn = $(`schulte-size-${s}`);
+      if (btn) btn.classList.toggle('active', s === size);
+    });
+    initSchulteGrid();
+  }
+
+  function setSchulteTheme(theme) {
+    state.schulteTheme = theme;
+    $('schulte-theme-classic')?.classList.toggle('active', theme === 'classic');
+    $('schulte-theme-color')?.classList.toggle('active', theme === 'color');
+    const grid = $('schulte-grid');
+    if (grid) {
+      grid.classList.toggle('theme-color', theme === 'color');
+    }
+  }
+
+  function stopSchulteTimer() {
+    if (state.schulteTimerInterval) {
+      clearInterval(state.schulteTimerInterval);
+      state.schulteTimerInterval = null;
+    }
+    state.schulteIsRunning = false;
+  }
+
+  function initSchulteGrid() {
+    stopSchulteTimer();
+    state.schulteNext = 1;
+    state.schulteElapsedTime = 0;
+
+    const size = state.schulteSize || 5;
+    const maxNum = size * size;
+
+    if ($('schulte-target-num')) $('schulte-target-num').textContent = '1';
+    if ($('schulte-timer')) $('schulte-timer').textContent = '00:00.0';
+
+    // Show best time for this size
+    const best = state.user?.schulteBestTime?.[size];
+    if ($('schulte-best-time')) {
+      $('schulte-best-time').textContent = best ? `${best}s` : '—';
+    }
+
+    const grid = $('schulte-grid');
+    if (!grid) return;
+
+    grid.className = `schulte-grid size-${size} ${state.schulteTheme === 'color' ? 'theme-color' : ''}`;
+    grid.innerHTML = '';
+
+    // Create array 1..maxNum and shuffle (Fisher-Yates)
+    const numbers = Array.from({ length: maxNum }, (_, i) => i + 1);
+    for (let i = numbers.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+    }
+
+    numbers.forEach(num => {
+      const cell = document.createElement('div');
+      cell.className = 'schulte-cell';
+      cell.textContent = num;
+      cell.dataset.num = num;
+      cell.onclick = (e) => onSchulteCellClick(num, cell, e);
+      grid.appendChild(cell);
+    });
+  }
+
+  function startSchulteTimer() {
+    state.schulteIsRunning = true;
+    state.schulteStartTime = Date.now();
+    state.schulteTimerInterval = setInterval(updateSchulteTimer, 50);
+  }
+
+  function updateSchulteTimer() {
+    if (!state.schulteIsRunning) return;
+    const elapsedMs = Date.now() - state.schulteStartTime;
+    const totalSec = elapsedMs / 1000;
+    const minutes = Math.floor(totalSec / 60);
+    const seconds = Math.floor(totalSec % 60);
+    const tenths = Math.floor((elapsedMs % 1000) / 100);
+
+    const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${tenths}`;
+    if ($('schulte-timer')) $('schulte-timer').textContent = formatted;
+  }
+
+  function onSchulteCellClick(num, cellEl) {
+    if (cellEl.classList.contains('cell-correct')) return;
+
+    // Start timer on first tap if not running
+    if (!state.schulteIsRunning) {
+      startSchulteTimer();
+    }
+
+    const maxNum = state.schulteSize * state.schulteSize;
+
+    if (num === state.schulteNext) {
+      // Correct!
+      cellEl.classList.add('cell-correct');
+      soundTone(650 + state.schulteNext * 20, 0.04);
+      if (navigator.vibrate) navigator.vibrate(12);
+
+      state.schulteNext++;
+
+      if (state.schulteNext <= maxNum) {
+        if ($('schulte-target-num')) $('schulte-target-num').textContent = state.schulteNext;
+      } else {
+        // Complete!
+        finishSchulte();
+      }
+    } else {
+      // Wrong number!
+      soundTone(220, 0.08);
+      cellEl.classList.add('cell-wrong');
+      setTimeout(() => cellEl.classList.remove('cell-wrong'), 300);
+      if (navigator.vibrate) navigator.vibrate([25, 35, 25]);
+    }
+  }
+
+  function finishSchulte() {
+    stopSchulteTimer();
+    const elapsedMs = Date.now() - state.schulteStartTime;
+    const totalSec = (elapsedMs / 1000).toFixed(1);
+    const size = state.schulteSize;
+    const count = size * size;
+    const secPerNum = (totalSec / count).toFixed(2);
+
+    soundSuccess();
+    triggerConfetti();
+
+    // Check personal record
+    state.user.schulteBestTime = state.user.schulteBestTime || { 3: null, 4: null, 5: null };
+    const prevBest = state.user.schulteBestTime[size];
+    const isRecord = !prevBest || parseFloat(totalSec) < parseFloat(prevBest);
+
+    if (isRecord) {
+      state.user.schulteBestTime[size] = totalSec;
+    }
+    state.user.schulteCompleted = (state.user.schulteCompleted || 0) + 1;
+
+    let xp = 15;
+    if (isRecord) xp += 10;
+    addXP(xp);
+    saveUser();
+
+    // Fill Modal Stats
+    if ($('schulte-stat-time')) $('schulte-stat-time').textContent = `${totalSec}s`;
+    if ($('schulte-stat-speed')) $('schulte-stat-speed').textContent = `${secPerNum}s`;
+    if ($('schulte-stat-xp')) $('schulte-stat-xp').textContent = `+${xp} XP`;
+
+    const recordBadge = $('schulte-record-badge');
+    if (recordBadge) {
+      if (isRecord) recordBadge.classList.remove('hidden');
+      else recordBadge.classList.add('hidden');
+    }
+
+    // Evaluation title & emoji
+    let title = 'Tebrikler!';
+    let emoji = '⚡';
+    if (size === 5) {
+      if (parseFloat(totalSec) <= 25) { title = '🏆 Şimşek Görüş!'; emoji = '⚡'; }
+      else if (parseFloat(totalSec) <= 35) { title = '🎯 Keskin Odak!'; emoji = '🦅'; }
+      else { title = '👏 Güzel Antrenman!'; emoji = '💪'; }
+    } else {
+      title = '🎯 Harika Tamamladın!';
+      emoji = '🌟';
+    }
+
+    if ($('schulte-result-title')) $('schulte-result-title').textContent = title;
+    if ($('schulte-result-emoji')) $('schulte-result-emoji').textContent = emoji;
+
+    // Show modal
+    $('schulte-result-modal')?.classList.remove('hidden');
+  }
+
+  function restartSchulte() {
+    closeSchulteModal();
+    initSchulteGrid();
+  }
+
+  function closeSchulteModal(e) {
+    if (e && e.target && e.target.id !== 'schulte-result-modal') return;
+    $('schulte-result-modal')?.classList.add('hidden');
+  }
+
   function confirmExit() {
     if (confirm('Egzersizden çıkmak istediğine emin misin? İlerleme kaydedilmeyecek.')) {
       stopAllExercises();
@@ -1863,6 +2076,12 @@ const app = (() => {
     saveCustomTextOnly,
     loadAndStartSaved,
     deleteCustomText,
+    openSchulteScreen,
+    exitSchulte,
+    setSchulteSize,
+    setSchulteTheme,
+    restartSchulte,
+    closeSchulteModal,
   };
 })();
 
