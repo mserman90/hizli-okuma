@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // HızOku - İçerik Veritabanı
 // Ortaokul seviyesi metinler ve anlama soruları
 // ============================================================
@@ -572,6 +572,7 @@ const BADGES = [
   { id: "effective_150", name: "Etkili Okuyucu", icon: "💎", description: "Etkili okuma hızı 150 KDK üstü", condition: (stats) => stats.bestEffective >= 150 },
   { id: "effective_200", name: "Elmas Okuyucu", icon: "💠", description: "Etkili okuma hızı 200 KDK üstü", condition: (stats) => stats.bestEffective >= 200 },
   { id: "marathon_hero", name: "Maraton Şampiyonu", icon: "🥇", description: "LGS Paragraf Maratonunu tamamla", condition: (stats) => stats.marathonCompleted >= 1 },
+  { id: "marathon_triple", name: "LGS Üçlemesi", icon: "🎖️", description: "3 farklı LGS Paragraf Denemesini tamamla", condition: (stats) => stats.marathonTripleCompleted },
 ];
 
 // Seviye sistemi
@@ -599,163 +600,505 @@ const TIPS = [
 ];
 
 // ============================================================
-// LGS Paragraf Maratonu (10'lu Deneme Simülatörü Soruları)
-// MEB 8. Sınıf LGS Formatı & Tam Çözümlü Paragraf Seti
+// LGS Paragraf Maratonu - Çoklu Deneme Kütüphanesi
+// MEB 8. Sınıf LGS Türkçe Formatında 3 Özgün Deneme Sınavı
 // ============================================================
-const LGS_MARATHON_QUESTIONS = [
+
+const LGS_MARATHON_EXAMS = [
   {
-    id: 1,
-    type: "Ana Fikir",
-    badge: "🎯 Ana Düşünce",
-    title: "1. Soru: Yapay Zekâ ve İnsan Yaratıcılığı",
-    passage: `Günümüzde yapay zekâ sistemleri saniyeler içinde binlerce görsel üretebilmekte, şiirler yazabilmekte ve besteler yapabilmektedir. Ancak bu üretimlerin ardında yatan süreç, gerçek bir duygu veya yaşantı değil; daha önce insanlar tarafından üretilmiş verilerin karmaşık algoritmalarla yeniden harmanlanmasıdır. Oysa bir sanat eserini değerli kılan şey, yalnızca kusursuz biçimi değil; sanatçının yaşadığı kederi, sevinci, umudu ve dünyaya özgü bakışını o esere sindirebilmesidir. Bir makine ne kadar gelişirse gelişsin, henüz kalbi kırılmamış ya da bir gün batımında nedensiz bir hüzün duymamıştır. Bu yüzden sanat, daima insanın kendi iç dünyasıyla kurduğu biricik köprü olarak kalacaktır.`,
-    question: `Bu parçada asıl anlatılmak istenen düşünce aşağıdakilerden hangisidir?`,
-    options: [
-      "Teknoloji geliştikçe geleneksel sanat dalları önemini kaybedecektir.",
-      "Yapay zekânın ürettiği eserler, sanatçılara yeni ilham kapıları açmaktadır.",
-      "Gerçek sanat, algoritmaların değil ancak insani duygu ve yaşanmışlıkların ürünü olabilir.",
-      "Bilgisayarların ürettiği sanat eserleri kusursuz bir estetik seviyeye ulaşmıştır."
-    ],
-    correct: 2,
-    explanation: `Yazar metin boyunca yapay zekânın veri harmanladığını ancak duygu ve yaşantıya sahip olamayacağını vurgulamaktadır. 'Bu yüzden sanat, daima insanın kendi iç dünyasıyla kurduğu biricik köprü olarak kalacaktır' cümlesi de asıl düşüncenin C seçeneği olduğunu doğrudan destekler.`
+    id: "exam-1",
+    number: 1,
+    title: "1. Deneme: Bilim, Teknoloji ve İnsan",
+    shortTitle: "Bilim & Teknoloji",
+    badge: "🤖 Bilim & Teknoloji",
+    icon: "🔬",
+    color: "#6C5CE7",
+    description: "Yapay zekâ, Göbeklitepe, uzay araştırmaları, derin deniz biyolüminesansı ve mantık-muhakeme soruları.",
+    questions: [
+      {
+        id: 1,
+        type: "Ana Fikir",
+        badge: "🎯 Ana Düşünce",
+        title: "1. Soru: Yapay Zekâ ve İnsan Yaratıcılığı",
+        passage: `Günümüzde yapay zekâ sistemleri saniyeler içinde binlerce görsel üretebilmekte, şiirler yazabilmekte ve besteler yapabilmektedir. Ancak bu üretimlerin ardında yatan süreç, gerçek bir duygu veya yaşantı değil; daha önce insanlar tarafından üretilmiş verilerin karmaşık algoritmalarla yeniden harmanlanmasıdır. Oysa bir sanat eserini değerli kılan şey, yalnızca kusursuz biçimi değil; sanatçının yaşadığı kederi, sevinci, umudu ve dünyaya özgü bakışını o esere sindirebilmesidir. Bir makine ne kadar gelişirse gelişsin, henüz kalbi kırılmamış ya da bir gün batımında nedensiz bir hüzün duymamıştır. Bu yüzden sanat, daima insanın kendi iç dünyasıyla kurduğu biricik köprü olarak kalacaktır.`,
+        question: `Bu parçada asıl anlatılmak istenen düşünce aşağıdakilerden hangisidir?`,
+        options: [
+          "Teknoloji geliştikçe geleneksel sanat dalları önemini kaybedecektir.",
+          "Yapay zekânın ürettiği eserler, sanatçılara yeni ilham kapıları açmaktadır.",
+          "Gerçek sanat, algoritmaların değil ancak insani duygu ve yaşanmışlıkların ürünü olabilir.",
+          "Bilgisayarların ürettiği sanat eserleri kusursuz bir estetik seviyeye ulaşmıştır."
+        ],
+        correct: 2,
+        explanation: `Yazar metin boyunca yapay zekânın veri harmanladığını ancak duygu ve yaşantıya sahip olamayacağını vurgulamaktadır. 'Bu yüzden sanat, daima insanın kendi iç dünyasıyla kurduğu biricik köprü olarak kalacaktır' cümlesi de asıl düşüncenin C seçeneği olduğunu doğrudan destekler.`
+      },
+      {
+        id: 2,
+        type: "Yardımcı Fikir",
+        badge: "🔍 Çıkarılamaz",
+        title: "2. Soru: Göbeklitepe ve Tarihin Sıfır Noktası",
+        passage: `Şanlıurfa yakınlarındaki Göbeklitepe, arkeoloji dünyasının yerleşik tarih anlayışını kökünden sarsmıştır. Bu keşiften önce bilim dünyası, insanların önce tarımı keşfedip köyler kurduğunu, ardından dini yapılar inşa ettiğini savunuyordu. Ancak Göbeklitepe'de bulunan ve günümüzden yaklaşık 12 bin yıl öncesine tarihlenen devasa 'T' biçimli sütunlar, henüz tarıma geçmemiş avcı-toplayıcı toplulukların bile tapınaklar inşa etmek amacıyla bir araya geldiklerini gösterdi. Üzerlerinde tilki, boğa, akrep gibi yabani hayvan kabartmaları bulunan bu sütunlar, o dönemin insanlarının gelişmiş bir sembolik düşünceye ve mimari uzmanlığa sahip olduğunu kanıtlamaktadır.`,
+        question: `Bu parçadan Göbeklitepe ile ilgili olarak aşağıdakilerden hangisi ÇIKARILAMAZ?`,
+        options: [
+          "Arkeologların yerleşik tarih tezlerini yeniden gözden geçirmesini sağladığı",
+          "Sütunların üzerinde dönemin yabani fauna ve hayvan figürlerinin yer aldığı",
+          "Tapınakları inşa eden toplulukların ileri düzeyde tarım faaliyetleri yürüttüğü",
+          "Günümüzden yaklaşık on iki bin yıl önceki avcı-toplayıcılar tarafından yapıldığı"
+        ],
+        correct: 2,
+        explanation: `Metinde açıkça 'henüz tarıma geçmemiş avcı-toplayıcı toplulukların bile tapınaklar inşa etmek amacıyla bir araya geldikleri' belirtilmektedir. Dolayısıyla bu toplulukların 'ileri düzeyde tarım yürüttüğü' yargısı metne tamamen aykırıdır.`
+      },
+      {
+        id: 3,
+        type: "Akışı Bozan Cümle",
+        badge: "✂️ Düşünce Akışı",
+        title: "3. Soru: Sokak Oyunları ve Çocuk Gelişimi",
+        passage: `(I) Geleneksel sokak oyunları, çocukların yalnızca fiziksel enerjilerini boşaltmalarını sağlamaz; aynı zamanda sosyal kuralları ve adalet kavramını yaşayarak öğrenmelerine aracı olur. (II) Saklambaç, körebe ya da mendil kapmaca oynayan çocuklar, yenilmeyi kabullenmeyi ve başkalarının haklarına saygı duymayı doğal yoldan deneyimler. (III) Günümüz video oyunları ise üst düzey grafik motorları ve sürükleyici senaryolarıyla milyonlarca oyuncuyu büyülemektedir. (IV) Oyun esnasında kendi aralarında kurdukları bu mikro toplum düzeni, çocuğun ileriki yaşlarda toplumsal yaşama uyum sağlamasını kolaylaştırır.`,
+        question: `Bu parçada numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?`,
+        options: ["I", "II", "III", "IV"],
+        correct: 2,
+        explanation: `Parçanın genelinde (I, II ve IV numaralı cümlelerde) geleneksel sokak oyunlarının çocukların sosyal, ahlaki ve psikolojik gelişimine katkıları anlatılmaktadır. III numaralı cümlede ise aniden günümüz video oyunlarının grafik ve senaryo özelliklerinden bahsedilerek akış bozulmuştur.`
+      },
+      {
+        id: 4,
+        type: "Mantık ve Muhakeme",
+        badge: "🧩 Mantık - Sıralama",
+        title: "4. Soru: Bilim Şenliği Proje Sunumları",
+        passage: `Bir ortaokulun bilim şenliğinde Ali, Beren, Cemil ve Derya adlı dört öğrenci Robotik, Biyoloji, Çevre ve Uzay projelerini sırayla sunacaktır. Sunum sıralarıyla ilgili bilinenler şunlardır:\n• Biyoloji projesi, Uzay projesinden hemen önceki sırada sunulmuştur.\n• Ali'nin sunumu ne ilk ne de son sıradadır.\n• Beren, Robotik projesini sunmuştur ve bu sunum 4. (son) sıradadır.\n• Cemil'in projesi Ali'nin projesinden hemen öncedir.`,
+        question: `Bu bilgilere göre 1. sırada hangi öğrenci hangi projeyi sunmuştur?`,
+        options: [
+          "Cemil - Biyoloji Projesi",
+          "Ali - Çevre Projesi",
+          "Cemil - Uzay Projesi",
+          "Derya - Biyoloji Projesi"
+        ],
+        correct: 0,
+        explanation: `Beren 4. sıradadır (Robotik). Ali ne ilk ne sondur ve Cemil Ali'den hemen öncedir, dolayısıyla Cemil 1. sırada, Ali 2. sırada olmak zorundadır (Derya 3. sıraya kalır). Biyoloji projesi Uzay'dan hemen önce olduğuna göre 1. ve 2. sıralar Biyoloji ve Uzay olmalıdır. Yani 1. sıradaki Cemil Biyoloji projesini sunmuştur.`
+      },
+      {
+        id: 5,
+        type: "Anlatım Teknikleri",
+        badge: "🎨 Anlatım Biçimleri",
+        title: "5. Soru: Karadeniz Yaylalarında Sabah",
+        passage: `Günün ilk ışıkları, vadiyi saran pamuksu sis perdesini usulca yırtarak ladin ağaçlarının nemli dallarına düşüyordu. Uzaklardan deli bir derenin taşlara çarpan çılgın türküsü duyuluyor, çimenlerin üzerindeki çiğ damlaları minik elmaslar gibi parıldıyordu. Rüzgâr, kekik ve çam kokularını sırtlayıp yüzümüze serin bir selam bırakarak geçip gitti. Doğanın bu uyanışı karşısında insan, adeta bir mabetteymişçesine derin bir sükûnetle nefesini tutuyordu.`,
+        question: `Bu parçanın anlatımında aşağıdakilerden hangisine BAŞVURULMAMIŞTIR?`,
+        options: [
+          "Benzetmeye (çiğ damlalarının elmaslara benzetilmesi)",
+          "İşitsel ögelere (derenin sesinin betimlenmesi)",
+          "Kişileştirmeye (rüzgârın selam bırakıp gitmesi)",
+          "Sayısal verilerden yararlanmaya"
+        ],
+        correct: 3,
+        explanation: `Metinde pamuksu sis / minik elmaslar (benzetme), derenin sesi (işitsel öge), rüzgarın selam bırakması / derenin türkü söylemesi (kişileştirme) yer almaktadır. Ancak hiçbir sayısal veri (istatistik/ölçüm) kullanılmamıştır.`
+      },
+      {
+        id: 6,
+        type: "Metin Karşılaştırma",
+        badge: "⚖️ İki Metin Analizi",
+        title: "6. Soru: Çöl ve Kutup Canlıları",
+        passage: `1. Metin: Kutup ayıları, Kuzey Kutbu'nun dondurucu soğuklarında hayatta kalabilmek için derilerinin altında 10 cm kalınlığında bir yağ tabakası ve ısıyı hapseden şeffaf, içi boş tüylerle donatılmıştır. Geniş patileri ise karda batmadan yürümelerini sağlar.\n\n2. Metin: Sahra Çölü'nde yaşayan Fennek tilkisi, kavurucu sıcaklarda vücut ısısını tahliye edebilmek için vücuduna oranla olağanüstü büyüklükte kulaklara sahiptir. Ayrıca tüylü ayak tabanları, kızgın kumlarda yanmadan koşabilmesine imkân verir.`,
+        question: `Bu iki metnin ORTAK yönü aşağıdakilerden hangisidir?`,
+        options: [
+          "Aynı coğrafi iklim kuşağındaki canlıları konu edinmeleri",
+          "Canlıların zorlu çevre koşullarına uyum (adaptasyon) özelliklerini açıklamaları",
+          "Nesli tükenme tehlikesi altında olan canlıları tanıtmaları",
+          "İnsan faaliyetlerinin vahşi yaşama olumsuz etkilerine dikkat çekmeleri"
+        ],
+        correct: 1,
+        explanation: `1. metin kutup ayısının soğuğa adaptasyonunu, 2. metin fennek tilkisinin çöl sıcağına adaptasyonunu anlatmaktadır. Her iki metin de canlıların zorlu doğa koşullarına geliştirdiği biyolojik uyumları (adaptasyonları) konu almaktadır.`
+      },
+      {
+        id: 7,
+        type: "Cümlede Anlam",
+        badge: "🎯 Neden-Sonuç / Amaç",
+        title: "7. Soru: Okyanuslardaki Plastik Adaları",
+        passage: `Her yıl milyonlarca ton plastik atık akarsular yoluyla denizlere ulaşmaktadır. Bu atıklar, okyanus akıntılarıyla bir araya toplanarak devasa plastik adaları oluşturmaktadır. Deniz canlıları bu parlak ve renkli mikroplastikleri besin zannettikleri için midelerine doldurmakta ve ne yazık ki açlıktan hayatını kaybetmektedir. Bilim insanları bu ölümcül gidişatı durdurmak amacıyla biyolojik olarak çözünebilen yosun bazlı alternatif ambalajlar geliştirmek için gece gündüz çalışmaktadır.`,
+        question: `Bu parçadaki altı çizili cümlelerin anlam ilişkisi aşağıdakilerin hangisinde sırasıyla doğru verilmiştir?`,
+        options: [
+          "1. Neden-Sonuç — 2. Amaç-Sonuç",
+          "1. Amaç-Sonuç — 2. Koşul-Sonuç",
+          "1. Koşul-Sonuç — 2. Neden-Sonuç",
+          "1. Neden-Sonuç — 2. Karşılaştırma"
+        ],
+        correct: 0,
+        explanation: `Deniz canlılarının atıkları besin zannetmesi bir 'NEDEN', midelerini bunlarla doldurup açlıktan ölmeleri bir 'SONUÇ'tur. Bilim insanlarının yosun bazlı alternatif üretme eylemi ise 'ölümcül gidişatı durdurmak' AMACINA yöneliktir. Dolayısıyla sıralama Neden-Sonuç ve Amaç-Sonuç'tur.`
+      },
+      {
+        id: 8,
+        type: "Sözcükte Anlam",
+        badge: "📖 Deyim ve Mecaz",
+        title: "8. Soru: Ustanın Nasihati",
+        passage: `Eski bir bakır ustası, dükkânına yeni başlayan genç çırağına çekici uzatırken şöyle demişti: 'Evlat, bu meslekte acele eden kendi ayağına çelme takar. Bir tepsiye vururken göz nuru dökmeyi bileceksin. Müşterinin getirdiği eski bir cezveyi yabana atma; işini öyle bir yap ki herkes seni parmakla göstersin. İğneyle kuyu kazar gibi sabırlı olmazsan usta olamazsın.'`,
+        question: `Ustanın çırağına verdiği öğütler arasında aşağıdaki deyimlerden hangisinin ifade ettiği anlam YOKTUR?`,
+        options: [
+          "Göz nuru dökmek (Büyük dikkat ve emek harcamak)",
+          "Parmakla gösterilmek (Seçkin ve başarılı bulunmak)",
+          "Yabana atmak (Önemsiz görüp dikkate almamak)",
+          "Pireyi deve yapmak (Küçük bir olayı aşırı büyütmek)"
+        ],
+        correct: 3,
+        explanation: `Parçada 'göz nuru dökmek' (emek vermek), 'yabana atmamak' (önemsiz görmemek), 'parmakla gösterilmek' (başarılı bulunmak) deyimleri doğrudan yer almaktadır. Ancak 'pireyi deve yapmak' deyimi ve anlamı metinde hiç geçmemektedir.`
+      },
+      {
+        id: 9,
+        type: "Bilimsel Paragraf",
+        badge: "🧪 Bilim - Çıkarım",
+        title: "9. Soru: Biyolüminesans (Işık Saçan Canlılar)",
+        passage: `Güneş ışığının asla ulaşamadığı okyanusların zifiri karanlık derinliklerinde yaşayan pek çok canlı, kendi ışığını üretme yeteneğine sahiptir. Biyolüminesans adı verilen bu biyokimyasal reaksiyon, lüsiferin maddesinin oksijenle tepkimeye girmesiyle gerçekleşir. İşin büyüleyici yanı, bu ışığın neredeyse %100'ünün saf ışık olması, yani sıradan bir ampul gibi ısı enerjisi kaybetmemesidir. Derin deniz fener balığı bu ışığı avlarını kendine çekmek için bir yem olarak kullanırken; bazı karides türleri ise avcılarının gözünü aniden kamaştırıp kaçabilmek için parlak bir ışık bulutu püskürtür.`,
+        question: `Bu parçaya göre canlıların biyolüminesans özelliğini kullanma amaçları arasında aşağıdakilerden hangisi GÖSTERİLEMEZ?`,
+        options: [
+          "Avlarını kendilerine doğru çekip tuzağa düşürmek",
+          "Vücut sıcaklıklarını dondurucu sularda yüksek tutmak",
+          "Düşmanlarının gözünü kamaştırarak tehlikelerden kaçmak",
+          "Karanlık ortamda yaşamsal faaliyetlerini sürdürmek"
+        ],
+        correct: 1,
+        explanation: `Metinde biyolüminesans ışığının neredeyse hiç ısı kaybetmediği, yani ısı üretmediği açıkça belirtilmektedir ('sıradan bir ampul gibi ısı enerjisi kaybetmez'). Dolayısıyla vücut sıcaklığını artırmak amacıyla kullanılamaz.`
+      },
+      {
+        id: 10,
+        type: "Eleştirel Okuma",
+        badge: "💡 Yazarın Tutumu",
+        title: "10. Soru: Nicelik mi Nitelik mi?",
+        passage: `Günümüzde sosyal medyada sıkça karşılaşıyoruz: 'Bu ay tam 20 kitap bitirdim!', 'Hedefim yılda 250 kitap okumak!'. Ne yazık ki okuma eylemi de çağımızın hız ve tüketim çılgınlığına kurban edilmiş durumda. Bir kitabı hız trenine biner gibi alelacele tüketmek, sayfaları sadece gözle tarayıp geçmek marifet değildir. Önemli olan, bir kitabı bitirdiğinde o kitabın senin zihninde hangi yeni pencereleri açtığı, sana hangi yeni soruları sordurduğudur. Yavaş ve sindire sindire okunan tek bir klasik roman, yarış pistindeymiş gibi tüketilen elli kitaptan çok daha fazla dönüştürür insanı.`,
+        question: `Bu parçanın yazarı aşağıdakilerden hangisini eleştirmektedir?`,
+        options: [
+          "Kitap fiyatlarının gençlerin bütçesini aşmasını",
+          "Sosyal medyanın kitap tanıtımlarına yer vermemesini",
+          "Okumanın anlama ve derinlikten uzaklaşıp salt sayısal bir yarışa dönüştürülmesini",
+          "Klasik romanların günümüz gençleri tarafından zor anlaşılmasını"
+        ],
+        correct: 2,
+        explanation: `Yazar 'okuma eyleminin hız ve tüketim çılgınlığına kurban edildiğini', 'marifetin sayfa adedi değil zihinde açılan pencereler olduğunu' belirterek okumanın niceliksel/sayısal bir yarışa çevrilmesini eleştirmektedir.`
+      }
+    ]
   },
   {
-    id: 2,
-    type: "Yardımcı Fikir",
-    badge: "🔍 Çıkarılamaz",
-    title: "2. Soru: Göbeklitepe ve Tarihin Sıfır Noktası",
-    passage: `Şanlıurfa yakınlarındaki Göbeklitepe, arkeoloji dünyasının yerleşik tarih anlayışını kökünden sarsmıştır. Bu keşiften önce bilim dünyası, insanların önce tarımı keşfedip köyler kurduğunu, ardından dini yapılar inşa ettiğini savunuyordu. Ancak Göbeklitepe'de bulunan ve günümüzden yaklaşık 12 bin yıl öncesine tarihlenen devasa 'T' biçimli sütunlar, henüz tarıma geçmemiş avcı-toplayıcı toplulukların bile tapınaklar inşa etmek amacıyla bir araya geldiklerini gösterdi. Üzerlerinde tilki, boğa, akrep gibi yabani hayvan kabartmaları bulunan bu sütunlar, o dönemin insanlarının gelişmiş bir sembolik düşünceye ve mimari uzmanlığa sahip olduğunu kanıtlamaktadır.`,
-    question: `Bu parçadan Göbeklitepe ile ilgili olarak aşağıdakilerden hangisi ÇIKARILAMAZ?`,
-    options: [
-      "Arkeologların yerleşik tarih tezlerini yeniden gözden geçirmesini sağladığı",
-      "Sütunların üzerinde dönemin yabani fauna ve hayvan figürlerinin yer aldığı",
-      "Tapınakları inşa eden toplulukların ileri düzeyde tarım faaliyetleri yürüttüğü",
-      "Günümüzden yaklaşık on iki bin yıl önceki avcı-toplayıcılar tarafından yapıldığı"
-    ],
-    correct: 2,
-    explanation: `Metinde açıkça 'henüz tarıma geçmemiş avcı-toplayıcı toplulukların bile tapınaklar inşa etmek amacıyla bir araya geldikleri' belirtilmektedir. Dolayısıyla bu toplulukların 'ileri düzeyde tarım yürüttüğü' yargısı metne tamamen aykırıdır.`
+    id: "exam-2",
+    number: 2,
+    title: "2. Deneme: Doğa, Ekoloji ve Yaşam Bilimleri",
+    shortTitle: "Doğa & Ekoloji",
+    badge: "🌿 Doğa & Yaşam",
+    icon: "🌱",
+    color: "#10B981",
+    description: "Orman iletişim ağları, iklim değişikliği, biyoçeşitlilik, mikroplastikler ve ekolojik tarım odaklı 10 MEB yeni nesil soru.",
+    questions: [
+      {
+        id: 1,
+        type: "Ana Fikir",
+        badge: "🎯 Ana Düşünce",
+        title: "1. Soru: Ormanların Yeraltı Ağı (Miçelyum)",
+        passage: `Ormanlardaki mantar ağları (miçelyum), ağaçların birbirleriyle besin ve bilgi paylaşmasını sağlayan yeraltı bir internet hattı gibidir. Bir ağaç böcek saldırısına uğradığında bu ağ üzerinden komşu ağaçlara kimyasal sinyaller göndererek onların savunma mekanizmalarını harekete geçirir. Hatta genç ve gölgede kalmış fidanlara, yaşlı ana ağaçlar bu mantar köprüleri sayesinde şeker ve su aktarır. Doğa bize rekabetten ziyade, dayanışma ve ortak yaşamın hayatta kalmanın asıl anahtarı olduğunu fısıldamaktadır.`,
+        question: `Bu parçada asıl anlatılmak istenen düşünce aşağıdakilerden hangisidir?`,
+        options: [
+          "Ağaçlar böcek saldırılarına karşı tek başlarına savunmasızdır.",
+          "Orman ekosisteminde mantarlar, ağaçlardan daha baskın bir role sahiptir.",
+          "Doğada hayatta kalmanın ve dengenin temeli, canlılar arasındaki rekabet değil iş birliği ve dayanışmadır.",
+          "Genç fidanların büyümesi yalnızca güneş ışığı miktarına bağlıdır."
+        ],
+        correct: 2,
+        explanation: `Yazar metin boyunca mantar ağlarının ağaçlar arasında yardımlaşma sağladığını anlatmış ve son cümlede 'Doğa bize rekabetten ziyade, dayanışma ve ortak yaşamın hayatta kalmanın asıl anahtarı olduğunu fısıldamaktadır' diyerek ana fikri doğrudan özetlemiştir.`
+      },
+      {
+        id: 2,
+        type: "Yardımcı Fikir",
+        badge: "🔍 Çıkarılamaz",
+        title: "2. Soru: Kutup Ayıları ve İklim Değişimi",
+        passage: `Arktik bölgesinin simgesi olan kutup ayıları, yaşamlarını deniz buzullarına bağımlı olarak sürdürürler. Deniz buzu, onların fokları avlayabildikleri tek av sahasıdır. Ancak küresel sıcaklık artışı sebebiyle buzulların her yıl daha erken erimesi ve kışın daha geç donması, kutup ayılarının avlanma sürelerini ciddi şekilde kısıtlamaktadır. Aç kalan ayılar karaya çıkmak zorunda kalmakta, enerjilerini korumak için metabolizmalarını yavaşlatmaktadır. Bilim insanları, buzulların bu hızla erimesi durumunda yüzyılın sonuna kadar kutup ayısı popülasyonunun büyük ölçüde yok olabileceği uyarısında bulunmaktadır.`,
+        question: `Bu parçadan kutup ayılarıyla ilgili aşağıdakilerden hangisi ÇIKARILAMAZ?`,
+        options: [
+          "Avlanma alanlarının büyük oranda deniz buzullarıyla sınırlı olduğu",
+          "Buzulların erime takvimindeki değişimin beslenmelerini olumsuz etkilediği",
+          "Karaya çıktıklarında enerji tasarrufu yapmak amacıyla metabolizmalarını yavaşlattıkları",
+          "Sıcak iklim şartlarına uyum sağlayarak karasal hayvanları avlamayı öğrendikleri"
+        ],
+        correct: 3,
+        explanation: `Parçada kutup ayılarının karaya çıktıklarında metabolizmalarını yavaşlattıkları ve aç kaldıkları belirtilmiş; karasal hayvanları avlamayı öğrendiklerine veya sıcak iklime uyum sağladıklarına dair hiçbir bilgi verilmemiştir.`
+      },
+      {
+        id: 3,
+        type: "Akışı Bozan Cümle",
+        badge: "✂️ Düşünce Akışı",
+        title: "3. Soru: Çöl Bitkilerinin Su Depolama Sırrı",
+        passage: `(I) Çöl bitkileri, aşırı kurak ve sıcak ortamlarda hayatta kalabilmek için olağanüstü su depolama teknikleri geliştirmiştir. (II) Örneğin kaktüsler, yapraklarını dikene dönüştürerek terleme yoluyla kaybedilen su miktarını neredeyse sıfıra indirir. (III) Kalın ve etli gövdeleri ise nadir görülen yağmur dönemlerinde tonlarca suyu hızla emip depolayabilir. (IV) Kaktüsler son yıllarda ev ve ofis dekorasyonunda popüler birer süs bitkisi haline gelmiştir. (V) Ayrıca toprağın hemen altında metrelerce yana uzanan sığ kök sistemleri, en ufak çiy damlasını bile toplayabilecek hassasiyettedir.`,
+        question: `Bu parçadaki numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?`,
+        options: ["II", "III", "IV", "V"],
+        correct: 2,
+        explanation: `Metnin I, II, III ve V numaralı cümlelerinde çöl bitkilerinin (kaktüslerin) çölde su depolama ve hayatta kalma biyolojik adaptasyonları anlatılırken; IV numaralı cümlede ev dekorasyonu ve süs bitkisi olmalarından bahsedilerek konunun dışına çıkılmıştır.`
+      },
+      {
+        id: 4,
+        type: "Mantık ve Muhakeme",
+        badge: "🧩 Mantık - Sıralama",
+        title: "4. Soru: Ekolojik Çiftlik Ekim Planı",
+        passage: `Bir ekolojik tarım okulunda Eren, Derya, Kaan ve Melis adlı 4 öğrenci; Domates, Biber, Çilek ve Fasulye parsellerini yan yana dizili 1, 2, 3 ve 4 numaralı alanlara ekeceklerdir.\nBilinenler şunlardır:\n• Çilek parseli, 1 numaralı alandadır.\n• Derya fasulye ekmiştir ve alanı Eren'in alanının hemen sağındadır.\n• Eren'in ektiği ürün domatestir ve alanı çift numaralı değildir.\n• Melis biber ekmemiştir.`,
+        question: `Bu bilgilere göre 4 numaralı alana hangi öğrenci, hangi ürünü ekmiştir?`,
+        options: [
+          "Kaan - Biber",
+          "Melis - Çilek",
+          "Derya - Fasulye",
+          "Eren - Domates"
+        ],
+        correct: 2,
+        explanation: `Çilek 1 numaradadır. Eren tek numaralı alana domates ekmiş ve 1 dolu olduğuna göre Eren 3 numaralı alandadır. Derya fasulyeyi Eren'in hemen sağına (4 numaraya) ekmiştir. Melis çileği (1) ekmiştir; geriye kalan Kaan ise biberi (2) ekmiştir. Dolayısıyla 4 numaralı alana Derya fasulye ekmiştir.`
+      },
+      {
+        id: 5,
+        type: "Paragraf Bölme",
+        badge: "📑 İki Paragrafa Bölme",
+        title: "5. Soru: Mercan Resifleri ve Tehditler",
+        passage: `(I) Mercan resifleri, okyanus tabanının yalnızca yüzde birini kaplamasına rağmen denizlerdeki tüm canlı türlerinin dörtte birine yuva sağlar. (II) Bu rengârenk su altı cennetleri, fırtınalarda kıyı şeritlerini dev dalgalardan koruyan doğal birer dalgakırandır. (III) Ancak son yıllarda artan deniz suyu sıcaklıkları, mercanların dokularındaki fotosentetik algleri dışarı atarak beyazlaşmasına ve ölmesine sebep olmaktadır. (IV) Bilim insanları, bu ölümcül beyazlaşma sürecini durdurabilmek için sıcaklığa dayanıklı 'süper mercan' kolonileri yetiştirme projeleri başlatmıştır. (V) Ayrıca yapay resifler suya batırılarak deniz canlılarının tutunabileceği yeni yapay yaşam alanları oluşturulmaktadır.`,
+        question: `Bu parça iki paragrafa bölünmek istense ikinci paragraf hangi cümleyle başlar?`,
+        options: ["II", "III", "IV", "V"],
+        correct: 1,
+        explanation: `I ve II numaralı cümlelerde mercan resiflerinin doğal ekosistemdeki önemi ve işlevleri anlatılırken; III numaralı cümleden itibaren küresel ısınmanın getirdiği tehdit ve beyazlaşma sorunu ele alınmaya başlanmıştır. Dolayısıyla ikinci paragraf III ile başlar.`
+      },
+      {
+        id: 6,
+        type: "Metin Tamamlama",
+        badge: "🔗 Anlam Akışı",
+        title: "6. Soru: Tozlaşma ve Arıların Önemi",
+        passage: `Arılar yalnızca bal üreticisi değildir; dünyadaki tarımsal gıdaların üçte birinin tozlaşmasını sağlayarak sofralarımıza ulaşmasını mümkün kılan gizli kahramanlardır. Eğer arı popülasyonları pestisitler ve habitat kaybı yüzünden yok olursa elma, badem, domates gibi yüzlerce meyve ve sebze türü tozlaşamaz. ----. Çünkü ekosistemdeki tek bir halkayı kopardığınızda, zincirin tamamı sarsılmaya mahkûmdur.`,
+        question: `Bu parçada boş bırakılan yere düşüncenin akışına göre aşağıdakilerden hangisi getirilmelidir?`,
+        options: [
+          "Bu durum yalnızca arıcıların ekonomik kazancını azaltacaktır",
+          "Böylece hem küresel bir besin krizi doğacak hem de binlerce bitki türünün nesli tükenecektir",
+          "Doğadaki tozlaşma açığını yapay gübrelerle kapatmak oldukça kolay olacaktır",
+          "Oysa arıların sayısındaki düşüşün insan sağlığına doğrudan bir etkisi bulunmamaktadır"
+        ],
+        correct: 1,
+        explanation: `Boşluktan önceki cümlede tozlaşmanın durması durumunda gıdaların yetişemeyeceği, boşluktan sonra da tüm ekosistem zincirinin sarsılacağı vurgulanmıştır. B seçeneğindeki 'küresel besin krizi ve bitkilerin neslinin tükenmesi' bu iki yargı arasındaki mantıksal nedensel bağı eksiksiz tamamlar.`
+      },
+      {
+        id: 7,
+        type: "Anlatım Teknikleri",
+        badge: "🎨 Anlatım Biçimleri",
+        title: "7. Soru: Kuşların Sonbahar Göçü",
+        passage: `Gökyüzünde binlerce leylek, sanki görünmez bir orkestra şefinin işaretini beklercesine devasa spiraller çizerek yükseliyordu. Kanatlarının altından süzülen ılık termal hava akımları, onları kanat çırpmadan kilometrelerce yükseğe, bulutların koynuna taşıyordu. Aşağıda kalan nehir gümüş bir şerit gibi kıvrılıyor; sarı, turuncu ve kızıl tonlara bürünen sonbahar ormanı ise rüzgârla dalgalanan dev bir halıyı andırıyordu. Bu yolculuk, kışın dondurucu pençesinden sıyrılıp güneyin güneşine kavuşmak için verilen destansı bir savaştı.`,
+        question: `Bu parçanın anlatımında aşağıdakilerden hangisine BAŞVURULMAMIŞTIR?`,
+        options: [
+          "Benzetmeye",
+          "Görme duyusuna ait ayrıntılara",
+          "Kişileştirmeye",
+          "Sayısal verilerden yararlanmaya"
+        ],
+        correct: 3,
+        explanation: `Parçada 'görünmez orkestra şefi gibi', 'gümüş bir şerit gibi', 'dev bir halıyı andırıyordu' (benzetme); 'bulutların koynu', 'kışın pençesi' (kişileştirme); renkler ve uçuş tasviri (görme duyusu) vardır. Ancak istatistiki veya ölçülebilir sayısal verilerden yararlanılmamıştır.`
+      },
+      {
+        id: 8,
+        type: "Eleştirel Okuma",
+        badge: "🎯 Neden-Sonuç",
+        title: "8. Soru: Görünmez Tehdit: Mikroplastikler",
+        passage: `Günümüzde üretilen plastiklerin yalnızca yüzde dokuzu geri dönüştürülebilmektedir. Geriye kalan milyonlarca ton plastik; okyanuslara, nehirlere ve toprağa karışarak zamanla güneş ışığı ve dalgaların etkisiyle 5 milimetreden küçük mikroplastik parçacıklarına ayrışmaktadır. Bu gözle görülemeyecek kadar ufak parçacıklar, planktonlardan balıklara, oradan da soframıza gelen deniz ürünlerine ve içme sularına kadar sızmaktadır. Bizler plastik kirliliğini sadece kıyılara vuran çöp yığınları sandığımız sürece, her gün kendi bedenimize görünmez bir kimyasal yük depolamaya devam edeceğiz.`,
+        question: `Bu parçaya göre mikroplastik tehlikesinin en kritik sonucu aşağıdakilerden hangisidir?`,
+        options: [
+          "Sahillerdeki turizm faaliyetlerini sekteye uğratması",
+          "Besin zincirine sızarak doğrudan insan sağlığını ve sofrasını tehdit etmesi",
+          "Geri dönüşüm tesislerinin maliyetlerini aşırı artırması",
+          "Okyanuslardaki dalga hareketlerini olumsuz yönde etkilemesi"
+        ],
+        correct: 1,
+        explanation: `Yazar, mikroplastiklerin en tehlikeli yönünün deniz canlılarından sofralarımıza ve içme sularımıza kadar besin zincirine sızması ve kendi bedenimize girmesi olduğunu vurgulamaktadır.`
+      },
+      {
+        id: 9,
+        type: "Sözcükte Anlam",
+        badge: "📖 Deyim ve Mecaz",
+        title: "9. Soru: Sulak Alanların Can Damarı",
+        passage: `Sulak alanlar, göçmen kuşların dinlenme istasyonu ve yer altı sularının doğal filtresidir. Bir bölgedeki bataklık veya sazlık alanı kurutup tarım arazisine çevirmek, ilk bakışta karlı bir adım gibi görünse de aslında o bölgenin ekolojik dengesinin 'can damarını kesmek' anlamına gelir. Çünkü yer altı suları çekilince verimli topraklar kısa sürede çölleşir ve telafisi imkânsız kuraklıklar başlar.`,
+        question: `Bu parçada geçen 'can damarını kesmek' sözüyle anlatılmak istenen aşağıdakilerden hangisidir?`,
+        options: [
+          "Canlıların besin bulmasını kolaylaştırmak",
+          "Bir sistemin varlığını sürdürmesi için en hayati unsuru yok etmek",
+          "Ekonomik açıdan büyük gelir kaynakları oluşturmak",
+          "Doğal alanları koruma altına almak"
+        ],
+        correct: 1,
+        explanation: `'Can damarı', bir varlığın yaşaması veya bir işin yürümesi için en hayati, en vazgeçilmez noktadır. Can damarını kesmek ise o hayati desteği ortadan kaldırmak, yok etmek demektir.`
+      },
+      {
+        id: 10,
+        type: "Karşılaştırma",
+        badge: "⚖️ İki Yöntem Karşılaştırması",
+        title: "10. Soru: Organik ve Endüstriyel Tarım",
+        passage: `Endüstriyel tarım, kimyasal gübre ve tarım ilaçlarıyla kısa vadede dönüm başına çok yüksek ürün miktarı vadeder; ne var ki bu yöntem birkaç on yıl içinde toprağın organik yapısını öldürüp onu verimsiz bir kum yığınına çevirir. Organik tarım ise kimyasallardan arındırılmış, biyolojik döngülere saygılı bir üretim modelidir; ilk yıllarda ürün miktarı endüstriyel tarıma kıyasla daha az olsa da toprağı canlı tutarak gelecek nesillerin de gıda üretebilmesini teminat altına alır. Biri bugünün kârı için yarını ipotek altına alırken, diğeri geleceği korumak adına bugünden sabır ve emek talep eder.`,
+        question: `Bu parçada organik tarım ile endüstriyel tarımın karşılaştırılmasında öne çıkan temel fark nedir?`,
+        options: [
+          "Çiftçilerin eğitim düzeylerine göre belirlenmeleri",
+          "Biri kısa vadeli yüksek kazanca odaklanırken diğerinin uzun vadeli toprak sürdürülebilirliğini hedeflemesi",
+          "Kullanılan tarım aletlerinin teknolojik donanımı",
+          "Üretilen ürünlerin sadece yerel pazarlarda satılması"
+        ],
+        correct: 1,
+        explanation: `Metnin son cümlesinde 'Biri bugünün kârı için yarını ipotek altına alırken (endüstriyel), diğeri geleceği korumak adına bugünden sabır ve emek talep eder (organik)' ifadesiyle temel farkın kısa vadeli yüksek kazanç ile uzun vadeli sürdürülebilirlik olduğu açıkça belirtilmiştir.`
+      }
+    ]
   },
   {
-    id: 3,
-    type: "Akışı Bozan Cümle",
-    badge: "✂️ Düşünce Akışı",
-    title: "3. Soru: Sokak Oyunları ve Çocuk Gelişimi",
-    passage: `(I) Geleneksel sokak oyunları, çocukların yalnızca fiziksel enerjilerini boşaltmalarını sağlamaz; aynı zamanda sosyal kuralları ve adalet kavramını yaşayarak öğrenmelerine aracı olur. (II) Saklambaç, körebe ya da mendil kapmaca oynayan çocuklar, yenilmeyi kabullenmeyi ve başkalarının haklarına saygı duymayı doğal yoldan deneyimler. (III) Günümüz video oyunları ise üst düzey grafik motorları ve sürükleyici senaryolarıyla milyonlarca oyuncuyu büyülemektedir. (IV) Oyun esnasında kendi aralarında kurdukları bu mikro toplum düzeni, çocuğun ileriki yaşlarda toplumsal yaşama uyum sağlamasını kolaylaştırır.`,
-    question: `Bu parçada numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?`,
-    options: ["I", "II", "III", "IV"],
-    correct: 2,
-    explanation: `Parçanın genelinde (I, II ve IV numaralı cümlelerde) geleneksel sokak oyunlarının çocukların sosyal, ahlaki ve psikolojik gelişimine katkıları anlatılmaktadır. III numaralı cümlede ise aniden günümüz video oyunlarının grafik ve senaryo özelliklerinden bahsedilerek akış bozulmuştur.`
-  },
-  {
-    id: 4,
-    type: "Mantık ve Muhakeme",
-    badge: "🧩 Mantık - Sıralama",
-    title: "4. Soru: Bilim Şenliği Proje Sunumları",
-    passage: `Bir ortaokulun bilim şenliğinde Ali, Beren, Cemil ve Derya adlı dört öğrenci Robotik, Biyoloji, Çevre ve Uzay projelerini sırayla sunacaktır. Sunum sıralarıyla ilgili bilinenler şunlardır:\n• Biyoloji projesi, Uzay projesinden hemen önceki sırada sunulmuştur.\n• Ali'nin sunumu ne ilk ne de son sıradadır.\n• Beren, Robotik projesini sunmuştur ve bu sunum 4. (son) sıradadır.\n• Cemil'in projesi Ali'nin projesinden hemen öncedir.`,
-    question: `Bu bilgilere göre 1. sırada hangi öğrenci hangi projeyi sunmuştur?`,
-    options: [
-      "Cemil - Biyoloji Projesi",
-      "Ali - Çevre Projesi",
-      "Cemil - Uzay Projesi",
-      "Derya - Biyoloji Projesi"
-    ],
-    correct: 0,
-    explanation: `Beren 4. sıradadır (Robotik). Ali ne ilk ne sondur ve Cemil Ali'den hemen öncedir, dolayısıyla Cemil 1. sırada, Ali 2. sırada olmak zorundadır (Derya 3. sıraya kalır). Biyoloji projesi Uzay'dan hemen önce olduğuna göre 1. ve 2. sıralar Biyoloji ve Uzay olmalıdır. Yani 1. sıradaki Cemil Biyoloji projesini sunmuştur.`
-  },
-  {
-    id: 5,
-    type: "Anlatım Teknikleri",
-    badge: "🎨 Anlatım Biçimleri",
-    title: "5. Soru: Karadeniz Yaylalarında Sabah",
-    passage: `Günün ilk ışıkları, vadiyi saran pamuksu sis perdesini usulca yırtarak ladin ağaçlarının nemli dallarına düşüyordu. Uzaklardan deli bir derenin taşlara çarpan çılgın türküsü duyuluyor, çimenlerin üzerindeki çiğ damlaları minik elmaslar gibi parıldıyordu. Rüzgâr, kekik ve çam kokularını sırtlayıp yüzümüze serin bir selam bırakarak geçip gitti. Doğanın bu uyanışı karşısında insan, adeta bir mabetteymişçesine derin bir sükûnetle nefesini tutuyordu.`,
-    question: `Bu parçanın anlatımında aşağıdakilerden hangisine BAŞVURULMAMIŞTIR?`,
-    options: [
-      "Benzetmeye (çiğ damlalarının elmaslara benzetilmesi)",
-      "İşitsel ögelere (derenin sesinin betimlenmesi)",
-      "Kişileştirmeye (rüzgârın selam bırakıp gitmesi)",
-      "Sayısal verilerden yararlanmaya"
-    ],
-    correct: 3,
-    explanation: `Metinde pamuksu sis / minik elmaslar (benzetme), derenin sesi (işitsel öge), rüzgarın selam bırakması / derenin türkü söylemesi (kişileştirme) yer almaktadır. Ancak hiçbir sayısal veri (istatistik/ölçüm) kullanılmamıştır.`
-  },
-  {
-    id: 6,
-    type: "Metin Karşılaştırma",
-    badge: "⚖️ İki Metin Analizi",
-    title: "6. Soru: Çöl ve Kutup Canlıları",
-    passage: `1. Metin: Kutup ayıları, Kuzey Kutbu'nun dondurucu soğuklarında hayatta kalabilmek için derilerinin altında 10 cm kalınlığında bir yağ tabakası ve ısıyı hapseden şeffaf, içi boş tüylerle donatılmıştır. Geniş patileri ise karda batmadan yürümelerini sağlar.\n\n2. Metin: Sahra Çölü'nde yaşayan Fennek tilkisi, kavurucu sıcaklarda vücut ısısını tahliye edebilmek için vücuduna oranla olağanüstü büyüklükte kulaklara sahiptir. Ayrıca tüylü ayak tabanları, kızgın kumlarda yanmadan koşabilmesine imkân verir.`,
-    question: `Bu iki metnin ORTAK yönü aşağıdakilerden hangisidir?`,
-    options: [
-      "Aynı coğrafi iklim kuşağındaki canlıları konu edinmeleri",
-      "Canlıların zorlu çevre koşullarına uyum (adaptasyon) özelliklerini açıklamaları",
-      "Nesli tükenme tehlikesi altında olan canlıları tanıtmaları",
-      "İnsan faaliyetlerinin vahşi yaşama olumsuz etkilerine dikkat çekmeleri"
-    ],
-    correct: 1,
-    explanation: `1. metin kutup ayısının soğuğa adaptasyonunu, 2. metin fennek tilkisinin çöl sıcağına adaptasyonunu anlatmaktadır. Her iki metin de canlıların zorlu doğa koşullarına geliştirdiği biyolojik uyumları (adaptasyonları) konu almaktadır.`
-  },
-  {
-    id: 7,
-    type: "Cümlede Anlam",
-    badge: "🎯 Neden-Sonuç / Amaç",
-    title: "7. Soru: Okyanuslardaki Plastik Adaları",
-    passage: `Her yıl milyonlarca ton plastik atık akarsular yoluyla denizlere ulaşmaktadır. Bu atıklar, okyanus akıntılarıyla bir araya toplanarak devasa plastik adaları oluşturmaktadır. Deniz canlıları bu parlak ve renkli mikroplastikleri besin zannettikleri için midelerine doldurmakta ve ne yazık ki açlıktan hayatını kaybetmektedir. Bilim insanları bu ölümcül gidişatı durdurmak amacıyla biyolojik olarak çözünebilen yosun bazlı alternatif ambalajlar geliştirmek için gece gündüz çalışmaktadır.`,
-    question: `Bu parçadaki altı çizili cümlelerin anlam ilişkisi aşağıdakilerin hangisinde sırasıyla doğru verilmiştir?`,
-    options: [
-      "1. Neden-Sonuç — 2. Amaç-Sonuç",
-      "1. Amaç-Sonuç — 2. Koşul-Sonuç",
-      "1. Koşul-Sonuç — 2. Neden-Sonuç",
-      "1. Neden-Sonuç — 2. Karşılaştırma"
-    ],
-    correct: 0,
-    explanation: `Deniz canlılarının atıkları besin zannetmesi bir 'NEDEN', midelerini bunlarla doldurup açlıktan ölmeleri bir 'SONUÇ'tur. Bilim insanlarının yosun bazlı alternatif üretme eylemi ise 'ölümcül gidişatı durdurmak' AMACINA yöneliktir. Dolayısıyla sıralama Neden-Sonuç ve Amaç-Sonuç'tur.`
-  },
-  {
-    id: 8,
-    type: "Sözcükte Anlam",
-    badge: "📖 Deyim ve Mecaz",
-    title: "8. Soru: Ustanın Nasihati",
-    passage: `Eski bir bakır ustası, dükkânına yeni başlayan genç çırağına çekici uzatırken şöyle demişti: 'Evlat, bu meslekte acele eden kendi ayağına çelme takar. Bir tepsiye vururken göz nuru dökmeyi bileceksin. Müşterinin getirdiği eski bir cezveyi yabana atma; işini öyle bir yap ki herkes seni parmakla göstersin. İğneyle kuyu kazar gibi sabırlı olmazsan usta olamazsın.'`,
-    question: `Ustanın çırağına verdiği öğütler arasında aşağıdaki deyimlerden hangisinin ifade ettiği anlam YOKTUR?`,
-    options: [
-      "Göz nuru dökmek (Büyük dikkat ve emek harcamak)",
-      "Parmakla gösterilmek (Seçkin ve başarılı bulunmak)",
-      "Yabana atmak (Önemsiz görüp dikkate almamak)",
-      "Pireyi deve yapmak (Küçük bir olayı aşırı büyütmek)"
-    ],
-    correct: 3,
-    explanation: `Parçada 'göz nuru dökmek' (emek vermek), 'yabana atmamak' (önemsiz görmemek), 'parmakla gösterilmek' (başarılı bulunmak) deyimleri doğrudan yer almaktadır. Ancak 'pireyi deve yapmak' deyimi ve anlamı metinde hiç geçmemektedir.`
-  },
-  {
-    id: 9,
-    type: "Bilimsel Paragraf",
-    badge: "🧪 Bilim - Çıkarım",
-    title: "9. Soru: Biyolüminesans (Işık Saçan Canlılar)",
-    passage: `Güneş ışığının asla ulaşamadığı okyanusların zifiri karanlık derinliklerinde yaşayan pek çok canlı, kendi ışığını üretme yeteneğine sahiptir. Biyolüminesans adı verilen bu biyokimyasal reaksiyon, lüsiferin maddesinin oksijenle tepkimeye girmesiyle gerçekleşir. İşin büyüleyici yanı, bu ışığın neredeyse %100'ünün saf ışık olması, yani sıradan bir ampul gibi ısı enerjisi kaybetmemesidir. Derin deniz fener balığı bu ışığı avlarını kendine çekmek için bir yem olarak kullanırken; bazı karides türleri ise avcılarının gözünü aniden kamaştırıp kaçabilmek için parlak bir ışık bulutu püskürtür.`,
-    question: `Bu parçaya göre canlıların biyolüminesans özelliğini kullanma amaçları arasında aşağıdakilerden hangisi GÖSTERİLEMEZ?`,
-    options: [
-      "Avlarını kendilerine doğru çekip tuzağa düşürmek",
-      "Vücut sıcaklıklarını dondurucu sularda yüksek tutmak",
-      "Düşmanlarının gözünü kamaştırarak tehlikelerden kaçmak",
-      "Karanlık ortamda yaşamsal faaliyetlerini sürdürmek"
-    ],
-    correct: 1,
-    explanation: `Metinde biyolüminesans ışığının neredeyse hiç ısı kaybetmediği, yani ısı üretmediği açıkça belirtilmektedir ('sıradan bir ampul gibi ısı enerjisi kaybetmez'). Dolayısıyla vücut sıcaklığını artırmak amacıyla kullanılamaz.`
-  },
-  {
-    id: 10,
-    type: "Eleştirel Okuma",
-    badge: "💡 Yazarın Tutumu",
-    title: "10. Soru: Nicelik mi Nitelik mi?",
-    passage: `Günümüzde sosyal medyada sıkça karşılaşıyoruz: 'Bu ay tam 20 kitap bitirdim!', 'Hedefim yılda 250 kitap okumak!'. Ne yazık ki okuma eylemi de çağımızın hız ve tüketim çılgınlığına kurban edilmiş durumda. Bir kitabı hız trenine biner gibi alelacele tüketmek, sayfaları sadece gözle tarayıp geçmek marifet değildir. Önemli olan, bir kitabı bitirdiğinde o kitabın senin zihninde hangi yeni pencereleri açtığı, sana hangi yeni soruları sordurduğudur. Yavaş ve sindire sindire okunan tek bir klasik roman, yarış pistindeymiş gibi tüketilen elli kitaptan çok daha fazla dönüştürür insanı.`,
-    question: `Bu parçanın yazarı aşağıdakilerden hangisini eleştirmektedir?`,
-    options: [
-      "Kitap fiyatlarının gençlerin bütçesini aşmasını",
-      "Sosyal medyanın kitap tanıtımlarına yer vermemesini",
-      "Okumanın anlama ve derinlikten uzaklaşıp salt sayısal bir yarışa dönüştürülmesini",
-      "Klasik romanların günümüz gençleri tarafından zor anlaşılmasını"
-    ],
-    correct: 2,
-    explanation: `Yazar 'okuma eyleminin hız ve tüketim çılgınlığına kurban edildiğini', 'marifetin sayfa adedi değil zihinde açılan pencereler olduğunu' belirterek okumanın niceliksel/sayısal bir yarışa çevrilmesini eleştirmektedir.`
+    id: "exam-3",
+    number: 3,
+    title: "3. Deneme: Sanat, Dil ve Kültür Mirası",
+    shortTitle: "Sanat & Kültür",
+    badge: "🏛️ Kültür & Sanat",
+    icon: "🎨",
+    color: "#F59E0B",
+    description: "Mimar Sinan, ebru sanatı, deyimlerin kökeni, müzik-beyin ilişkisi ve edebiyat odaklı 10 seçkin paragraf sorusu.",
+    questions: [
+      {
+        id: 1,
+        type: "Ana Fikir",
+        badge: "🎯 Ana Düşünce",
+        title: "1. Soru: Mimar Sinan ve Süleymaniye Akustiği",
+        passage: `Mimar Sinan, Süleymaniye Camii'ni inşa ederken kubbenin içine farklı boyutlarda 64 adet boş küp yerleştirmiş ve bu küplerin ağızlarını caminin içine doğru açmıştır. Amacı, imamın sesinin hiçbir elektronik yükselticiye ihtiyaç duymadan binlerce cemaatin bulunduğu en ücra köşelere bile aynı berraklıkta ulaşmasını sağlamaktı. Dahası, yüzlerce kandilden çıkan dumanın cami duvarlarını kirletmesini engellemek için kurduğu hava akımı kanallarıyla isi tek bir noktada toplamış ve bu isten dönemin en kaliteli hattat mürekkebini ürettirmiştir. Sinan'ın mimarlığı, yalnızca taş ve harcın birleşimi değil; fizik, akustik ve çevre bilincinin estetikle yoğrulduğu eşsiz bir dehadır.`,
+        question: `Bu parçada Mimar Sinan ile ilgili olarak asıl anlatılmak istenen nedir?`,
+        options: [
+          "Osmanlı döneminde inşa edilen camilerin dünya çapında taklit edildiği",
+          "Dehasının yalnızca mimari biçimle sınırlı kalmayıp bilimi, akustiği ve işlevselliği sanata dönüştürdüğü",
+          "Kandil isinden üretilen mürekkeplerin diğer mürekkeplerden daha dayanıklı olduğu",
+          "Süleymaniye Camii'nin inşaatının beklenenden çok daha uzun sürdüğü"
+        ],
+        correct: 1,
+        explanation: `Parçanın ana fikri, Sinan'ın mimarlığının sadece taş yapılar inşa etmek değil; akustik, hava akımı, malzeme geri dönüşümü gibi bilimsel ilkeleri estetik ve işlevsellikle birleştiren üstün bir deha olduğudur (B seçeneği).`
+      },
+      {
+        id: 2,
+        type: "Yardımcı Fikir",
+        badge: "🔍 Çıkarılamaz",
+        title: "2. Soru: Ebru Sanatı: Su Üstünde Sabır",
+        passage: `Ebru sanatı, kitre adı verilen bitkisel bir zamkla yoğunlaştırılmış suyun üzerine, sığır ödü karıştırılmış doğal toprak boyaların serpilmesi ve bu desenlerin kâğıda aktarılmasıyla icra edilir. Öd suyu, boyaların birbirine karışmadan su yüzeyinde yüzmesini ve yayılmasını sağlar. Ebru ustası asla acele edemez; her boya damlasının suyla kurduğu temas, o günkü odanın sıcaklığına, neme ve ustanın o anki ruh haline göre farklı bir biçim alır. Bu yönüyle ebru, sanatçının malzemeye tamamen hükmettiği bir alan değil; suyun ve doğanın diline saygı duyarak onunla uyum içinde ürettiği bir sabır yolculuğudur.`,
+        question: `Bu parçadan ebru sanatı ile ilgili olarak aşağıdakilerden hangisi ÇIKARILAMAZ?`,
+        options: [
+          "Yapımında doğal bileşenlerin ve hayvansal katkıların (öd suyu) kullanıldığı",
+          "Desenlerin oluşumunda ortam koşullarının ve sanatçının duygu durumunun etkili olduğu",
+          "Suyun yoğunluğunu artırmak için kimyasal yapıştırıcıların tercih edildiği",
+          "Sanatçının suyla bir güç mücadelesine girmek yerine doğayla uyum sağladığı"
+        ],
+        correct: 2,
+        explanation: `Metinde suyun yoğunlaştırılması için 'kitre adı verilen bitkisel bir zamk' kullanıldığı yazmaktadır. Kimyasal yapıştırıcıların kullanıldığı bilgisi yanlıştır ve çıkarılamaz.`
+      },
+      {
+        id: 3,
+        type: "Akışı Bozan Cümle",
+        badge: "✂️ Düşünce Akışı",
+        title: "3. Soru: Masalların Çocuk Ruhuna Katkısı",
+        passage: `(I) Masallar, çocukların yalnızca uykuya dalmasını sağlayan basit anlatılar değil; onların zihinsel ve ahlaki gelişimini besleyen kadim kaynaklardır. (II) Masallardaki iyi-kötü, cesaret-korkaklık çatışmaları sayesinde çocuklar, gerçek hayattaki soyut kavramları somutlaştırarak öğrenirler. (III) Kahramanın zorluklar karşısında pes etmeyip mücadele etmesi, çocuğun problem çözme becerisine ve özgüvenine doğrudan katkı sunar. (IV) Son yıllarda çocuklara yönelik animasyon filmler sinema sektöründe milyarlarca dolarlık devasa bir bütçeye ulaşmıştır. (V) Dolayısıyla masal dinleyerek veya okuyarak büyüyen bir çocuğun empati yeteneği çok daha güçlü gelişir.`,
+        question: `Bu parçadaki numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?`,
+        options: ["II", "III", "IV", "V"],
+        correct: 2,
+        explanation: `Parçanın tamamında masalların çocuğun zihinsel, ahlaki gelişimi, empati ve problem çözme becerisine katkısı işlenirken; IV numaralı cümlede sinema sektöründeki animasyon film bütçelerinden söz edilerek konunun akışı bozulmuştur.`
+      },
+      {
+        id: 4,
+        type: "Mantık ve Muhakeme",
+        badge: "🧩 Mantık - Sıralama",
+        title: "4. Soru: Kitap Günleri Söyleşi Takvimi",
+        passage: `Bir ortaokulda düzenlenen Kitap Günleri kapsamında Ahmet, Berna, Ceyda ve Deniz adlı dört yazar; Perşembe, Cuma, Cumartesi ve Pazar günlerinde birer söyleşi yapacaklardır.\nBilinenler şunlardır:\n• Hafta içi günlerde (Perşembe ve Cuma) yalnızca erkek yazarlar söyleşi yapmıştır.\n• Berna'nın söyleşisi Pazar günü değildir.\n• Ahmet, söyleşisini ilk gün yapmamıştır.`,
+        question: `Bu bilgilere göre Cumartesi günü söyleşi yapan yazar kesinlikle kimdir?`,
+        options: [
+          "Ceyda",
+          "Berna",
+          "Ahmet",
+          "Deniz"
+        ],
+        correct: 1,
+        explanation: `Erkek yazarlar Ahmet ve Deniz'dir. Hafta içi (Perşembe ve Cuma) erkekler söyleşi yapmıştır. Ahmet ilk gün (Perşembe) yapmadığına göre Cuma günü yapmıştır; bu durumda Deniz Perşembe günü yapmıştır. Hafta sonu (Cumartesi ve Pazar) kadın yazarlar Berna ve Ceyda kalır. Berna Pazar günü yapmadığına göre Berna kesinlikle Cumartesi günü yapmıştır (Ceyda ise Pazar).`
+      },
+      {
+        id: 5,
+        type: "Paragraf Bölme",
+        badge: "📑 İki Paragrafa Bölme",
+        title: "5. Soru: Türkçede Deyimlerin Zenginliği",
+        passage: `(I) Türkçede deyimler, anlatımı renklendiren ve duygu dünyamızı en kestirme yoldan ifade eden dil incileridir. (II) 'Göze girmek', 'eteğindeki taşları dökmek' veya 'küplere binmek' gibi kalıplaşmış sözler, birkaç kelimeyle sayfalar dolusu ruh halini aktarabilir. (III) Deyimlerin birçoğunun kökeni, geçmiş yüzyıllardaki geleneksel mesleklerin çalışma ortamlarına dayanmaktadır. (IV) Örneğin 'pabucu dama atılmak' deyimi, Ahilik teşkilatında kusurlu mal üreten ayakkabıcı esnafının dükkân çatısına ayakkabısının atılması cezasından doğmuştur. (V) Benzer şekilde 'çizmeyi aşmak' deyimi de dericilik ve kunduracılık zanaatında çırakların haddini bilmesi kuralından dilimize miras kalmıştır.`,
+        question: `Bu parça iki paragrafa bölünmek istense ikinci paragraf hangi cümleyle başlar?`,
+        options: ["II", "III", "IV", "V"],
+        correct: 1,
+        explanation: `I ve II numaralı cümlelerde deyimlerin Türkçe anlatımındaki canlılık ve mecaz gücü ele alınırken; III numaralı cümleden itibaren deyimlerin tarihsel kökenleri ve Ahilik teşkilatı zanaat geleneğine dayanan çıkış hikâyeleri anlatılmaya başlanmıştır. Dolayısıyla ikinci paragraf III ile başlar.`
+      },
+      {
+        id: 6,
+        type: "Metin Tamamlama",
+        badge: "🔗 Anlam Akışı",
+        title: "6. Soru: Müzik Eğitimi ve Zihinsel Gelişim",
+        passage: `Bir müzik aleti çalmak, beynimiz için eksiksiz bir jimnastik salonu işlevi görür. Notaları okurken görme merkezi, sesleri ayırt ederken işitme merkezi, parmakları tuşlara veya tellere basarken ise motor beceri merkezi aynı anda uyarılır. Nörobilimciler, düzenli enstrüman çalan bireylerin beynin sağ ve sol lobları arasındaki iletişimi sağlayan 'korpus kallozum' köprüsünün belirgin şekilde kalınlaştığını tespit etmiştir. ----. Bu nedenle müzikle uğraşan çocukların problem çözme, dil öğrenme ve matematiksel düşünme becerileri yaşıtlarına kıyasla çok daha hızlı gelişir.`,
+        question: `Bu parçada boş bırakılan yere düşüncenin akışına göre aşağıdakilerden hangisi getirilmelidir?`,
+        options: [
+          "Bu durum, iki lob arasındaki veri akışını ve bağlantı hızını olağanüstü biçimde artırır",
+          "Oysa sadece klasik müzik dinlemek beyin gelişiminde hiçbir rol oynamaz",
+          "Fakat enstrüman eğitimi akademik başarıyı olumsuz etkileyebilmektedir",
+          "Ne var ki nota öğrenmek çocuklarda dikkat dağınıklığına yol açabilir"
+        ],
+        correct: 0,
+        explanation: `Boşluktan önce korpus kallozum köprüsünün kalınlaştığı, boşluktan sonra da problem çözme ve matematiksel becerilerin hızla geliştiği söylenmektedir. A seçeneğindeki 'iki lob arasındaki veri akışını ve bağlantı hızını olağanüstü artırır' cümlesi bu biyolojik sebep-sonuç ilişkisini kusursuz şekilde bağlar.`
+      },
+      {
+        id: 7,
+        type: "Anlatım Teknikleri",
+        badge: "🎨 Anlatım Biçimleri",
+        title: "7. Soru: Kapalıçarşı'da Zamana Direnen Bakırcı",
+        passage: `Tarihi Kapalıçarşı'nın loş kemerleri altında, çekiç sesleri yüzyıllık bir ezgi gibi yankılanıyordu. Bakır ustası Salih Efendi, nasırlı elleriyle tuttuğu keskisiyle bakır tepsiye lale motifleri işlerken zaman adeta durmuştu. Ocakta pişen odun kömürünün isli kokusu, taze demlenmiş kakuleli kahve rayihasına karışıyordu. Köşedeki pirinç lambaların sarımtırak ışığı, ustanın alnındaki ter damlalarını kristal birer boncuk gibi parlatıyordu. Burada teknolojiye inat sabır, aceleye inat emek konuşuyordu.`,
+        question: `Bu parçanın anlatımında aşağıdakilerden hangisi AĞIRLIKLIDIR?`,
+        options: [
+          "Tartışmacı anlatım",
+          "Betimleyici ve öyküleyici anlatım",
+          "Sayısal verilerden yararlanma",
+          "Tanımlama"
+        ],
+        correct: 1,
+        explanation: `Metinde bir olay anı (Salih ustanın çalışması) hikâyeleştirilerek sunulmuş (öyküleme); sesler, kokular, ışıklar ve renkler adeta zihinde bir tablo gibi canlandırılmıştır (betimleme). Dolayısıyla betimleyici ve öyküleyici anlatım ağırlıktadır.`
+      },
+      {
+        id: 8,
+        type: "Eleştirel Okuma",
+        badge: "💡 Yazarın Amacı",
+        title: "8. Soru: Dijital Çağda Mektubun Ruhu",
+        passage: `Cep telefonundan saniyeler içinde gönderilen emojili, kısaltmalı iletiler çağında yaşıyoruz. Bir düğmeye basıyor, muhatabımıza ulaşıyoruz. Ancak bu hız, iletişimin ruhunu ve derinliğini de beraberinde götürdü. Oysa eskiden bir mektup yazılırken kâğıt özenle seçilir, mürekkep damlamasın diye dikkat edilir, günlerce posta yolu gözlenirdi. O bekleme sürecinin kendisi bile karşı tarafa verilen değerin ve sevginin göstergesiydi. Bugün birbirimize hiç olmadığımız kadar yakınız ama ruhlarımız belki de tarihin hiçbir döneminde bu kadar kopuk olmamıştı.`,
+        question: `Bu parçanın yazarı aşağıdakilerden hangisini vurgulamak istemektedir?`,
+        options: [
+          "Posta idarelerinin çalışma hızının artırılması gerektiğini",
+          "Dijital hızın iletişimi kolaylaştırırken insan ilişkilerindeki samimiyeti ve derinliği tükettiğini",
+          "El yazısının günümüzde artık geçerliliğini yitirdiğini",
+          "Kısa mesajların mektuptan daha ekonomik olduğunu"
+        ],
+        correct: 1,
+        explanation: `Yazar, anlık dijital hızın mektuptaki özen ve sabrı yok ettiğini belirterek 'birbirimize hiç olmadığımız kadar yakınız ama ruhlarımız hiç bu kadar kopuk olmamıştı' sözüyle dijital hızın samimiyet ve derinliği tükettiğini vurgulamaktadır.`
+      },
+      {
+        id: 9,
+        type: "Sözcükte Anlam",
+        badge: "📖 Deyim ve Mecaz",
+        title: "9. Soru: Zamanın Eleğinden Geçmek",
+        passage: `Bir edebiyat eserinin gerçek kıymeti, yayımlandığı gün gördüğü alkışlarla veya satış rekorlarıyla ölçülmez. Nice çok satan roman vardır ki bir yıl sonra adları bile anılmaz. Gerçek başyapıtlar, 'zamanın eleğinden geçerek' yüzyıllar sonrasının okuruna da hitap edebilen, insanoğlunun evrensel dertlerini her çağda yeniden konuşturabilen eserlerdir.`,
+        question: `Bu parçada geçen 'zamanın eleğinden geçmek' sözüyle anlatılmak istenen nedir?`,
+        options: [
+          "Eserin kısa sürede binlerce baskı yapması",
+          "Zamana meydan okuyarak değerini kaybetmeden kalıcılığını korumak",
+          "Dönemin popüler konularına odaklanmak",
+          "Yaşlı ve deneyimli yazarlar tarafından yazılmak"
+        ],
+        correct: 1,
+        explanation: `'Elekten geçmek' elenip sağlam olanların kalmasıdır; 'zamanın eleğinden geçmek' ise üzerinden yıllar, asırlar geçmesine rağmen unutulmamak, değerini ve kalıcılığını koruyabilmektir.`
+      },
+      {
+        id: 10,
+        type: "Karşılaştırma",
+        badge: "⚖️ İki Sanat Karşılaştırması",
+        title: "10. Soru: Gölge Oyunu ve Modern Sinema",
+        passage: `Geleneksel Türk gölge oyunu Karagöz ve Hacivat'ta dekor tek bir beyaz perdeden (hayal perdesi), ışık ise bir mum veya kandilden ibarettir. Seyirciyi büyüleyen şey devasa bütçeli görsel efektler değil; perdenin arkasındaki tek bir sanatçının (hayali) onlarca farklı sesi, lehçeyi ve espriyi anlık doğaçlamayla canlandırabilme ustalığıdır. Modern sinema ise seyirciye her şeyi hazır, devasa bütçeler ve dijital efektlerle sunarak izleyicinin hayal gücüne neredeyse hiç pay bırakmaz. Biri seyirciyi perdeye ortak ederken, diğeri onu sadece pasif bir tüketici koltuğuna oturtur.`,
+        question: `Bu parçada Karagöz oyunu ile modern sinema karşılaştırılırken Karagöz oyununun hangi yönü öne çıkarılmıştır?`,
+        options: [
+          "Bilet fiyatlarının sinemaya göre çok daha ucuz olması",
+          "Yüksek teknolojik ekipmanlara sahip olması",
+          "İzleyicinin hayal gücünü harekete geçirmesi ve sanatçının doğaçlama hüneriyle şekillenmesi",
+          "Sadece yetişkin izleyicilere hitap etmesi"
+        ],
+        correct: 2,
+        explanation: `Yazar, Karagöz'de seyircinin hayal gücünün devreye girdiğini ve hayalinin doğaçlama hünerinin perdede devleştiğini vurgulamış; 'biri seyirciyi perdeye ortak eder' diyerek C seçeneğindeki özelliği öne çıkarmıştır.`
+      }
+    ]
   }
 ];
+
+// Geriye dönük uyumluluk: İlk deneme soruları
+const LGS_MARATHON_QUESTIONS = LGS_MARATHON_EXAMS[0].questions;
+
+
