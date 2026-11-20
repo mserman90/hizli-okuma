@@ -46,6 +46,7 @@ const app = (() => {
       const data = localStorage.getItem('hizoku_user');
       if (data) {
         state.user = JSON.parse(data);
+        if (!state.user.customTexts) state.user.customTexts = [];
         return true;
       }
     } catch (e) {}
@@ -72,6 +73,7 @@ const app = (() => {
       weekStart: getWeekStart(),
       createdAt: new Date().toISOString(),
       usedModes: [],
+      customTexts: [],
     };
   }
 
@@ -708,6 +710,24 @@ const app = (() => {
     // Show available texts
     const grid = $('text-select-grid');
     grid.innerHTML = '';
+
+    // Render user's saved custom texts first (if any)
+    const customList = state.user.customTexts || [];
+    customList.forEach(text => {
+      const item = document.createElement('div');
+      item.className = 'text-select-item';
+      item.onclick = () => startExercise(text);
+
+      item.innerHTML = `
+        <span class="text-icon">✍️</span>
+        <div class="text-info">
+          <h4>${text.title}</h4>
+          <p>Kendi Metnim · ${countWords(text.content)} kelime</p>
+        </div>
+        <span class="text-level badge badge-custom">Özel Metin</span>
+      `;
+      grid.appendChild(item);
+    });
 
     // If LGS mode, prioritize or filter LGS texts
     const listToDisplay = mode === 'lgs' 
@@ -1500,6 +1520,304 @@ const app = (() => {
     document.documentElement.style.fontSize = (16 * state.fontScale) + 'px';
   }
 
+  // ============================================================
+  // ---- Custom Text Studio (Kendi Metninle Çalış) ----
+  // ============================================================
+
+  function openCustomTextScreen(preferredMode) {
+    if (preferredMode) {
+      state.currentMode = preferredMode;
+    }
+    const mode = state.currentMode || 'rsvp';
+    onCustomModeChange(mode);
+    onCustomTextInput();
+    renderSavedCustomTexts();
+    showScreen('screen-custom-text');
+  }
+
+  function closeCustomTextScreen() {
+    if (state.lastExerciseMode) {
+      selectMode(state.lastExerciseMode);
+    } else {
+      goToDashboard();
+    }
+  }
+
+  function onCustomTextInput() {
+    const text = ($('custom-text-content')?.value || '').trim();
+    const wordCount = countWords(text);
+    const charCount = text.length;
+
+    // Estimate reading time in seconds based on student's speed or 200 WPM
+    const studentSpeed = (state.user && state.user.initialEffective > 80)
+      ? state.user.initialEffective
+      : 200;
+    const estSec = wordCount > 0 ? Math.max(1, Math.round((wordCount / studentSpeed) * 60)) : 0;
+
+    if ($('custom-word-count')) $('custom-word-count').textContent = wordCount;
+    if ($('custom-char-count')) $('custom-char-count').textContent = charCount;
+    if ($('custom-est-time')) $('custom-est-time').textContent = estSec > 0 ? `~${estSec} sn` : '0 sn';
+  }
+
+  function pasteFromClipboard() {
+    if (navigator.clipboard && navigator.clipboard.readText) {
+      navigator.clipboard.readText().then(text => {
+        if (text) {
+          $('custom-text-content').value = text;
+          onCustomTextInput();
+        }
+      }).catch(() => {
+        alert('Panodan okuma izni verilmedi. Lütfen metni doğrudan kutuya yapıştırınız (Ctrl+V / Uzun bas).');
+        $('custom-text-content')?.focus();
+      });
+    } else {
+      $('custom-text-content')?.focus();
+    }
+  }
+
+  function loadSampleCustomText() {
+    const sampleTitle = "LGS Türkçe Örnek Paragraf: Yapay Zekâ ve Dil";
+    const sampleContent = "Yapay zekâ teknolojilerinin hızla geliştiği günümüzde makinelerin insan dilini anlama ve anlamlandırma yeteneği yeni bir boyut kazanmıştır. Doğal dil işleme adı verilen bu alan, bilgisayarların sadece sözcükleri dizmekle kalmayıp aralarındaki anlamsal bağları da çözümlemesine imkân tanır. Ancak uzmanlar, makinelerin ne kadar gelişirse gelişsin insan zihnindeki sezgi, duygu ve kültürel bağlamı tam olarak yakalayamayacağını vurgulamaktadır. Dolayısıyla dil, yalnızca bir iletişim aracı değil; insan bilincinin ve düşünce dünyasının en derin aynası olmaya devam etmektedir.";
+
+    $('custom-text-title').value = sampleTitle;
+    $('custom-text-content').value = sampleContent;
+    onCustomTextInput();
+  }
+
+  function clearCustomText() {
+    $('custom-text-title').value = '';
+    $('custom-text-content').value = '';
+    onCustomTextInput();
+  }
+
+  function onCustomModeChange(mode) {
+    state.currentMode = mode;
+    $$('.custom-mode-option').forEach(el => el.classList.remove('selected'));
+    const targetOpt = $(`opt-mode-${mode}`);
+    if (targetOpt) {
+      targetOpt.classList.add('selected');
+      const radio = targetOpt.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+    }
+  }
+
+  function toggleCustomQuestionForm(show) {
+    const form = $('custom-manual-question-form');
+    if (form) {
+      if (show) form.classList.remove('hidden');
+      else form.classList.add('hidden');
+    }
+  }
+
+  function generateQuestionsForText(text, title) {
+    const stopWords = new Set([
+      've', 'veya', 'ile', 'ama', 'fakat', 'ancak', 'için', 'gibi', 'bir', 'bu', 'şu', 'o',
+      'da', 'de', 'ki', 'mi', 'mu', 'mü', 'mı', 'göre', 'kadar', 'çok', 'daha', 'en', 'ise',
+      'hem', 'ne', 'ya', 'her', 'tüm', 'bütün', 'bazı', 'hiç', 'biri', 'kendi', 'bunu', 'buna',
+      'bunun', 'böyle', 'şöyle', 'olarak', 'olan', 'oldu', 'olur', 'etti', 'eden', 'diye', 'sonra',
+      'önce', 'vardır', 'yoktur', 'çünkü', 'yani', 'aynı', 'şekilde', 'büyük', 'küçük', 'yeni',
+      'zaman', 'şey', 'bile', 'artık', 'başka', 'nasıl', 'neden', 'hangi'
+    ]);
+
+    const words = text.toLowerCase().match(/[a-zçğıöşü]{4,}/gi) || [];
+    const validWords = [...new Set(words.filter(w => !stopWords.has(w)))];
+
+    const generalDistractors = [
+      'arkeoloji', 'teleskop', 'okyanus', 'ekosistem', 'jeoloji', 'laboratuvar',
+      'mimarlık', 'atmosfer', 'astronomi', 'biyoloji', 'felsefe', 'tarih'
+    ].filter(d => !words.includes(d));
+
+    const questions = [];
+
+    // Question 1: Key Concept in text
+    if (validWords.length >= 2) {
+      const correctWord = validWords[Math.floor(validWords.length / 3)];
+      const distractors = generalDistractors.slice(0, 3);
+      const options = [correctWord, ...distractors].sort(() => Math.random() - 0.5);
+      questions.push({
+        question: `Metin Hatırlama: Aşağıdaki kavram ve sözcüklerden hangisi okuduğun bu metinde geçmektedir?`,
+        options: options.map(o => o.charAt(0).toUpperCase() + o.slice(1)),
+        correct: options.indexOf(correctWord)
+      });
+    }
+
+    // Question 2: Which word does NOT appear in text?
+    if (validWords.length >= 4) {
+      const notInText = generalDistractors[3] || 'volkanizma';
+      const inTextWords = [validWords[0], validWords[1], validWords[2]];
+      const options2 = [notInText, ...inTextWords].sort(() => Math.random() - 0.5);
+      questions.push({
+        question: `Detay İnceleme: Aşağıdaki kelimelerden hangisi okuduğun bu metinde GEÇMEZ?`,
+        options: options2.map(o => o.charAt(0).toUpperCase() + o.slice(1)),
+        correct: options2.indexOf(notInText)
+      });
+    }
+
+    // Question 3: Self-evaluation / summary reflection
+    questions.push({
+      question: `Okuma Sonrası Değerlendirme: Bu metni bütünüyle ne kadar kavradığını düşünüyorsun?`,
+      options: [
+        'Çok iyi anladım, ana fikri ve detayları kavradım (%100)',
+        'İyi anladım, ana fikri yakaladım (%75)',
+        'Kısmen anladım, birkaç detayı kaçırdım (%50)',
+        'Hız nedeniyle anlamakta zorlandım (%25)'
+      ],
+      correct: 0
+    });
+
+    return questions;
+  }
+
+  function getCustomTextFromInputs() {
+    const content = ($('custom-text-content')?.value || '').trim();
+    if (!content) {
+      alert('Lütfen egzersiz yapmak için bir metin veya paragraf yapıştırın.');
+      $('custom-text-content')?.focus();
+      return null;
+    }
+
+    const wordCount = countWords(content);
+    if (wordCount < 15) {
+      alert('Metin çok kısa! Etkili bir okuma egzersizi için en az 15–20 kelimelik bir paragraf önerilir.');
+      return null;
+    }
+
+    const titleInput = ($('custom-text-title')?.value || '').trim();
+    const title = titleInput || (content.slice(0, 35) + '...');
+
+    const isManualQuiz = $('custom-manual-question-form') && !$('custom-manual-question-form').classList.contains('hidden');
+    let questions = [];
+
+    if (isManualQuiz) {
+      const qText = ($('manual-q1-text')?.value || '').trim();
+      const optA = ($('manual-q1-optA')?.value || '').trim();
+      const optB = ($('manual-q1-optB')?.value || '').trim();
+      const optC = ($('manual-q1-optC')?.value || '').trim();
+      const optD = ($('manual-q1-optD')?.value || '').trim();
+
+      if (qText && optA && optB) {
+        const rawOptions = [optA, optB];
+        if (optC) rawOptions.push(optC);
+        if (optD) rawOptions.push(optD);
+        questions.push({
+          question: qText,
+          options: rawOptions,
+          correct: 0
+        });
+      }
+    }
+
+    if (questions.length === 0) {
+      questions = generateQuestionsForText(content, title);
+    }
+
+    return {
+      id: 'custom_' + Date.now(),
+      title: title,
+      category: 'Özel Metin',
+      icon: '✍️',
+      level: 2,
+      content: content,
+      questions: questions,
+      createdAt: new Date().toISOString()
+    };
+  }
+
+  function startCustomTextExercise() {
+    const textObj = getCustomTextFromInputs();
+    if (!textObj) return;
+
+    // Save to user customTexts if not already present
+    state.user.customTexts = state.user.customTexts || [];
+    const exists = state.user.customTexts.find(t => t.content === textObj.content);
+    if (!exists) {
+      state.user.customTexts.unshift(textObj);
+      saveUser();
+    }
+
+    // Determine mode
+    const selectedMode = state.currentMode || 'rsvp';
+    state.currentMode = selectedMode;
+
+    // Start
+    startExercise(textObj);
+  }
+
+  function saveCustomTextOnly() {
+    const textObj = getCustomTextFromInputs();
+    if (!textObj) return;
+
+    state.user.customTexts = state.user.customTexts || [];
+    const existsIndex = state.user.customTexts.findIndex(t => t.content === textObj.content);
+    if (existsIndex >= 0) {
+      state.user.customTexts[existsIndex] = textObj;
+    } else {
+      state.user.customTexts.unshift(textObj);
+    }
+    saveUser();
+    renderSavedCustomTexts();
+    alert('✅ Metin başarıyla "Kayıtlı Özel Metinlerim" listesine eklendi!');
+  }
+
+  function renderSavedCustomTexts() {
+    const container = $('saved-custom-texts-list');
+    const countEl = $('saved-custom-count');
+    if (!container) return;
+
+    const list = state.user.customTexts || [];
+    if (countEl) countEl.textContent = list.length;
+
+    container.innerHTML = '';
+
+    if (list.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding:16px 10px; margin:0;">
+          <p style="font-size:13px; color:var(--text-light); margin:0;">
+            Henüz kayıtlı özel metnin yok. Yukarıdan istediğin bir paragrafı ekleyip kaydedebilirsin.
+          </p>
+        </div>
+      `;
+      return;
+    }
+
+    list.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'saved-text-item';
+      row.innerHTML = `
+        <div class="saved-text-info">
+          <h4>${item.title}</h4>
+          <p>${countWords(item.content)} kelime · ${new Date(item.createdAt).toLocaleDateString('tr-TR')}</p>
+        </div>
+        <div class="saved-text-actions">
+          <button class="btn btn-sm btn-primary" onclick="app.loadAndStartSaved('${item.id}')">Çalış ▶</button>
+          <button class="btn-icon-danger" onclick="app.deleteCustomText('${item.id}')" title="Metni Sil">🗑️</button>
+        </div>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  function loadAndStartSaved(id) {
+    const list = state.user.customTexts || [];
+    const item = list.find(t => t.id === id);
+    if (!item) return;
+
+    $('custom-text-title').value = item.title;
+    $('custom-text-content').value = item.content;
+    onCustomTextInput();
+
+    const selectedMode = state.currentMode || 'rsvp';
+    state.currentMode = selectedMode;
+    startExercise(item);
+  }
+
+  function deleteCustomText(id) {
+    if (!confirm('Bu özel metni silmek istediğine emin misin?')) return;
+    state.user.customTexts = (state.user.customTexts || []).filter(t => t.id !== id);
+    saveUser();
+    renderSavedCustomTexts();
+  }
+
   function confirmExit() {
     if (confirm('Egzersizden çıkmak istediğine emin misin? İlerleme kaydedilmeyecek.')) {
       stopAllExercises();
@@ -1533,6 +1851,18 @@ const app = (() => {
     nextQuestion,
     repeatExercise,
     confirmExit,
+    openCustomTextScreen,
+    closeCustomTextScreen,
+    onCustomTextInput,
+    pasteFromClipboard,
+    loadSampleCustomText,
+    clearCustomText,
+    onCustomModeChange,
+    toggleCustomQuestionForm,
+    startCustomTextExercise,
+    saveCustomTextOnly,
+    loadAndStartSaved,
+    deleteCustomText,
   };
 })();
 

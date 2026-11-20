@@ -232,6 +232,16 @@
 
     <div class="tip-card" id="daily-tip"></div>
 
+    <!-- Custom Text Banner -->
+    <div class="custom-text-banner-card" onclick="app.openCustomTextScreen()">
+      <div class="custom-banner-left">
+        <div class="custom-banner-badge">✨ YENİ ÖZELLİK</div>
+        <h3>✍️ Kendi Metnini Yükle / Yapıştır</h3>
+        <p>LGS deneme paragrafı, ödev metni veya kitap pasajıyla istediğin modda çalış!</p>
+      </div>
+      <button class="btn btn-sm btn-primary custom-banner-btn" type="button">Metin Ekle ➔</button>
+    </div>
+
     <h3 class="section-title">🎯 Egzersiz Modları</h3>
 
     <!-- RSVP Mode -->
@@ -323,7 +333,164 @@
       <span></span>
     </div>
 
+    <!-- Custom Text Trigger Banner inside Text Select -->
+    <div class="custom-text-trigger-banner" onclick="app.openCustomTextScreen()">
+      <div class="custom-trigger-icon">✍️</div>
+      <div class="custom-trigger-info">
+        <strong>Kendi Metninle Çalış</strong>
+        <p>Panodan yapıştır veya kendi paragrafını oluştur</p>
+      </div>
+      <button class="btn btn-sm btn-primary" type="button">+ Yeni Metin</button>
+    </div>
+
     <div class="text-select-grid" id="text-select-grid"></div>
+  </div>
+
+  <!-- ========== CUSTOM TEXT STUDIO (Kendi Metnini Yükle) ========== -->
+  <div id="screen-custom-text" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.closeCustomTextScreen()">←</button>
+      <h2>✍️ Kendi Metnini Yükle</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <!-- Intro Card -->
+    <div class="card custom-text-intro mb-16">
+      <p style="font-size:13px; color:var(--text); line-height:1.5; margin:0;">
+        💡 <strong>İstediğin içerikle pratik yap:</strong> LGS deneme paragrafı, Türkçe ders kitabı metni, ödev veya bir haber yazısını yapıştır; sistem anında kelime ve süreyi hesaplasın!
+      </p>
+    </div>
+
+    <!-- Text Input Card -->
+    <div class="card mb-16">
+      <div class="form-group mb-12">
+        <label for="custom-text-title" style="font-weight:600; font-size:13.5px; display:block; margin-bottom:6px;">Metin Başlığı (İsteğe bağlı):</label>
+        <input type="text" id="custom-text-title" class="custom-input" placeholder="Örn: 2024 LGS Türkçe Paragraf Sorusu" maxlength="60">
+      </div>
+
+      <div class="form-group mb-12">
+        <div class="custom-text-toolbar">
+          <label for="custom-text-content" style="font-weight:600; font-size:13.5px; margin:0;">Metin İçeriği:</label>
+          <div class="custom-toolbar-actions">
+            <button type="button" class="btn-tool" onclick="app.pasteFromClipboard()" title="Panodan Yapıştır">📋 Yapıştır</button>
+            <button type="button" class="btn-tool" onclick="app.loadSampleCustomText()" title="Örnek LGS Paragrafı">📑 Örnek Yükle</button>
+            <button type="button" class="btn-tool" onclick="app.clearCustomText()" title="Metni Temizle">🗑️ Temizle</button>
+          </div>
+        </div>
+        <textarea id="custom-text-content" class="custom-textarea" rows="6" placeholder="Okumak istediğin paragrafı veya metni buraya yapıştır... (En az 25 kelime önerilir)" oninput="app.onCustomTextInput()"></textarea>
+      </div>
+
+      <!-- Real-time Stats Pill Bar -->
+      <div class="custom-stats-bar" id="custom-stats-bar">
+        <div class="custom-stat-pill">
+          <span class="pill-label">Kelime</span>
+          <strong id="custom-word-count">0</strong>
+        </div>
+        <div class="custom-stat-pill">
+          <span class="pill-label">Tahmini Süre</span>
+          <strong id="custom-est-time">0 sn</strong>
+        </div>
+        <div class="custom-stat-pill">
+          <span class="pill-label">Karakter</span>
+          <strong id="custom-char-count">0</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Exercise Mode Choice -->
+    <div class="card mb-16">
+      <h3 style="font-size:15px; margin-bottom:12px;">🎯 Hangi Modda Çalışmak İstiyorsun?</h3>
+      <div class="custom-mode-selector">
+        <label class="custom-mode-option selected" id="opt-mode-rsvp">
+          <input type="radio" name="customMode" value="rsvp" checked onchange="app.onCustomModeChange('rsvp')">
+          <span class="opt-icon">👁️</span>
+          <div class="opt-text">
+            <strong>Odak Modu (RSVP)</strong>
+            <small>Kelimeleri odak noktasında tek tek gör</small>
+          </div>
+        </label>
+        <label class="custom-mode-option" id="opt-mode-guided">
+          <input type="radio" name="customMode" value="guided" onchange="app.onCustomModeChange('guided')">
+          <span class="opt-icon">📍</span>
+          <div class="opt-text">
+            <strong>Yönlendirilmiş Okuma</strong>
+            <small>Vurgu imleci ile satırları takip et</small>
+          </div>
+        </label>
+        <label class="custom-mode-option" id="opt-mode-visual">
+          <input type="radio" name="customMode" value="visual" onchange="app.onCustomModeChange('visual')">
+          <span class="opt-icon">🔭</span>
+          <div class="opt-text">
+            <strong>Genişletilmiş Görüş Alanı</strong>
+            <small>Kelimeleri bloklar halinde oku</small>
+          </div>
+        </label>
+        <label class="custom-mode-option" id="opt-mode-lgs">
+          <input type="radio" name="customMode" value="lgs" onchange="app.onCustomModeChange('lgs')">
+          <span class="opt-icon">🎯</span>
+          <div class="opt-text">
+            <strong>LGS Paragraf Antrenörü</strong>
+            <small>Sınav süre baskılı tam sayfa okuma</small>
+          </div>
+        </label>
+        <label class="custom-mode-option" id="opt-mode-bionic">
+          <input type="radio" name="customMode" value="bionic" onchange="app.onCustomModeChange('bionic')">
+          <span class="opt-icon">🧪</span>
+          <div class="opt-text">
+            <strong>Biyonik Okuma</strong>
+            <small>Harf başı kalınlaştırmalı akış (Deneysel)</small>
+          </div>
+        </label>
+      </div>
+    </div>
+
+    <!-- Comprehension Quiz Settings -->
+    <div class="card mb-16">
+      <h3 style="font-size:15px; margin-bottom:10px;">🧠 Anlama Değerlendirmesi</h3>
+      <div class="quiz-pref-selector">
+        <label class="quiz-pref-opt">
+          <input type="radio" name="customQuizPref" value="auto" checked onchange="app.toggleCustomQuestionForm(false)">
+          <span>🤖 <strong>Akıllı Otomatik Test:</strong> Metinden kilit kavram ve dikkat soruları otomatik oluşturulsun.</span>
+        </label>
+        <label class="quiz-pref-opt mt-8">
+          <input type="radio" name="customQuizPref" value="manual" onchange="app.toggleCustomQuestionForm(true)">
+          <span>✍️ <strong>Kendi Sorularımı Ekleyeceğim:</strong> Soru bankasından soruyu da girmek istiyorum.</span>
+        </label>
+      </div>
+
+      <!-- Expandable Manual Question Form -->
+      <div id="custom-manual-question-form" class="manual-q-container hidden mt-12">
+        <div class="manual-q-box">
+          <label style="font-size:13px; font-weight:600; display:block; margin-bottom:4px;">Paragraf Sorusu:</label>
+          <input type="text" id="manual-q1-text" class="custom-input mb-8" placeholder="Örn: Paragrafta asıl anlatılmak istenen düşünce hangisidir?">
+          <div class="manual-options-grid">
+            <input type="text" id="manual-q1-optA" class="custom-input correct-opt-field" placeholder="A) Doğru Cevap Şıkkı">
+            <input type="text" id="manual-q1-optB" class="custom-input" placeholder="B) Çeldirici Şık">
+            <input type="text" id="manual-q1-optC" class="custom-input" placeholder="C) Çeldirici Şık">
+            <input type="text" id="manual-q1-optD" class="custom-input" placeholder="D) Çeldirici Şık">
+          </div>
+          <small style="color:var(--text-light); font-size:11px; display:block; margin-top:4px;">Not: Soru seçenekleri test sırasında otomatik olarak karıştırılır.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="custom-actions-row">
+      <button class="btn btn-primary btn-block" id="btn-start-custom-exercise" onclick="app.startCustomTextExercise()">
+        🚀 Egzersizi Başlat
+      </button>
+      <button class="btn btn-secondary btn-block mt-8" onclick="app.saveCustomTextOnly()">
+        💾 Metinlerime Kaydet
+      </button>
+    </div>
+
+    <!-- Saved Custom Texts Section -->
+    <div id="saved-custom-texts-section" class="mt-24">
+      <h3 class="section-title">📚 Kayıtlı Özel Metinlerim (<span id="saved-custom-count">0</span>)</h3>
+      <div id="saved-custom-texts-list" class="saved-texts-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
   </div>
 
   <!-- ========== RSVP EXERCISE ========== -->
