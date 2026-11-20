@@ -30,6 +30,46 @@
   --max-width: 480px;
 }
 
+/* ---------- Sepya Modu (Göz Dinlendirici Kitap Kağıdı Teması) ---------- */
+[data-theme="sepia"] {
+  --bg: #F4ECD8;
+  --bg-card: #FAF4E8;
+  --text: #3D2E1E;
+  --text-light: #6E5C49;
+  --text-muted: #9E8C78;
+  --primary: #8C532B;
+  --primary-light: #D4A373;
+  --primary-dark: #6F3B16;
+  --secondary: #4A7C59;
+  --secondary-light: #A3C9A8;
+  --accent: #C85A32;
+  --accent-light: #E9C46A;
+  --success: #386641;
+  --shadow: 0 4px 15px rgba(90, 70, 50, 0.12);
+  --shadow-lg: 0 8px 30px rgba(90, 70, 50, 0.2);
+}
+
+/* ---------- Gece / Karanlık Modu (Göz Yormayan Koyu Tema) ---------- */
+[data-theme="dark"] {
+  --bg: #0B0F19;
+  --bg-card: #151D2E;
+  --text: #F1F5F9;
+  --text-light: #94A3B8;
+  --text-muted: #64748B;
+  --primary: #818CF8;
+  --primary-light: #A5B4FC;
+  --primary-dark: #6366F1;
+  --secondary: #2DD4BF;
+  --secondary-light: #5EEAD4;
+  --accent: #F472B6;
+  --accent-light: #FDE047;
+  --success: #10B981;
+  --warning: #FBBF24;
+  --danger: #F87171;
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 35px rgba(0, 0, 0, 0.7);
+}
+
 /* ---------- Reset & Base ---------- */
 *, *::before, *::after {
   box-sizing: border-box;
@@ -3924,6 +3964,268 @@ button, .btn, .nav-item, .mode-card, .quiz-option, .text-select-item {
     padding: 6px 8px !important;
   }
 }
+
+/* ---------- 🎯 Günlük 15 Dakika Antrenman Koçu & Zinciri Kırma Stilleri ---------- */
+.daily-coach-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  border: 2px solid transparent;
+  background-image: linear-gradient(var(--bg-card), var(--bg-card)), 
+                    linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.coach-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.coach-badge-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: rgba(108, 92, 231, 0.12);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  margin-bottom: 4px;
+}
+
+[data-theme="sepia"] .coach-badge-tag {
+  background: rgba(140, 83, 43, 0.15);
+  color: var(--primary);
+}
+
+[data-theme="dark"] .coach-badge-tag {
+  background: rgba(129, 140, 248, 0.18);
+  color: var(--primary-light);
+}
+
+.coach-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.coach-desc {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  line-height: 1.35;
+}
+
+.streak-badge-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #FF7675 0%, #D63031 100%);
+  color: #FFFFFF;
+  padding: 8px 14px;
+  border-radius: 14px;
+  box-shadow: 0 4px 12px rgba(214, 48, 49, 0.3);
+  min-width: 68px;
+  text-align: center;
+  animation: streakPulse 2.5s infinite ease-in-out;
+}
+
+@keyframes streakPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.streak-fire {
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.streak-num {
+  font-size: 1.2rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.streak-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+}
+
+.coach-progress-wrapper {
+  background: rgba(0, 0, 0, 0.03);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+
+[data-theme="dark"] .coach-progress-wrapper {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.coach-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.coach-progress-title {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.coach-progress-count {
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.coach-progress-bar {
+  height: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .coach-progress-bar {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.coach-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
+  border-radius: 4px;
+  transition: width 0.4s ease;
+}
+
+.coach-steps-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.coach-step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  transition: var(--transition);
+}
+
+[data-theme="dark"] .coach-step-item {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.coach-step-item:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+}
+
+.coach-step-item.completed {
+  background: rgba(0, 184, 148, 0.08);
+  border-color: rgba(0, 184, 148, 0.3);
+}
+
+.coach-step-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.coach-step-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.coach-step-name {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.coach-step-sub {
+  font-size: 0.76rem;
+  color: var(--text-light);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.coach-step-action {
+  flex-shrink: 0;
+}
+
+.btn-coach {
+  background: var(--primary);
+  color: #FFFFFF;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-coach:hover {
+  background: var(--primary-dark);
+  transform: scale(1.04);
+}
+
+.coach-done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--success);
+  background: rgba(0, 184, 148, 0.15);
+  padding: 5px 10px;
+  border-radius: var(--radius-full);
+}
+
+.coach-bonus-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  background: linear-gradient(135deg, rgba(253, 203, 110, 0.2) 0%, rgba(253, 121, 168, 0.15) 100%);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  border-left: 3px solid var(--accent-light);
+}
+
+.coach-bonus-box.all-completed {
+  background: linear-gradient(135deg, rgba(0, 184, 148, 0.2) 0%, rgba(0, 206, 201, 0.15) 100%);
+  border-left-color: var(--success);
+  color: var(--success);
+  font-weight: 600;
+}
+
+.bonus-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
 
 
 

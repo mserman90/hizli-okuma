@@ -1,4 +1,4 @@
-// ============================================================
+﻿// ============================================================
 // HızOku - Ana Uygulama Mantığı
 // ============================================================
 
@@ -81,6 +81,10 @@ const app = (() => {
         if (state.user.marathonBestNet === undefined) state.user.marathonBestNet = 0;
         if (!state.user.marathonExamScores) state.user.marathonExamScores = {};
         if (state.user.eyeGymCompleted === undefined) state.user.eyeGymCompleted = 0;
+        if (state.user.dailyStreak === undefined) state.user.dailyStreak = 0;
+        if (!state.user.todayCoachSteps) state.user.todayCoachSteps = [false, false, false];
+        if (!state.user.todayCoachDate) state.user.todayCoachDate = null;
+        if (!state.user.lastCoachDate) state.user.lastCoachDate = null;
         return true;
       }
     } catch (e) {}
@@ -114,6 +118,10 @@ const app = (() => {
       marathonBestNet: 0,
       marathonExamScores: {},
       eyeGymCompleted: 0,
+      dailyStreak: 0,
+      lastCoachDate: null,
+      todayCoachSteps: [false, false, false],
+      todayCoachDate: null,
     };
   }
 
@@ -482,7 +490,173 @@ const app = (() => {
   }
 
   // ---- Init ----
+  // ---- Theme Management (Light / Sepia / Dark) ----
+  function initTheme() {
+    const saved = localStorage.getItem('hizoku_theme') || 'light';
+    applyTheme(saved, false);
+  }
+
+  function applyTheme(theme, save = true) {
+    state.theme = theme;
+    if (save) {
+      try { localStorage.setItem('hizoku_theme', theme); } catch (e) {}
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+
+    const btn = $('btn-toggle-theme');
+    if (btn) {
+      if (theme === 'sepia') {
+        btn.innerHTML = '📜 Sepya';
+        btn.title = 'Mevcut: Sepya (Tıkla: Gece Modu)';
+      } else if (theme === 'dark') {
+        btn.innerHTML = '🌙 Gece';
+        btn.title = 'Mevcut: Gece (Tıkla: Aydınlık Modu)';
+      } else {
+        btn.innerHTML = '☀️ Aydınlık';
+        btn.title = 'Mevcut: Aydınlık (Tıkla: Sepya Modu)';
+      }
+    }
+  }
+
+  function cycleTheme() {
+    const current = state.theme || 'light';
+    if (current === 'light') applyTheme('sepia');
+    else if (current === 'sepia') applyTheme('dark');
+    else applyTheme('light');
+    soundClick();
+  }
+
+  // ---- 🎯 Günlük 15 Dakika Antrenman Koçu & Zinciri Kırma ----
+  function getTodayDateString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function getYesterdayDateString() {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function checkDailyCoachReset() {
+    if (!state.user) return;
+    const today = getTodayDateString();
+    if (state.user.todayCoachDate !== today) {
+      const yest = getYesterdayDateString();
+      // If last finished date was not yesterday and not today, streak resets
+      if (state.user.lastCoachDate && state.user.lastCoachDate !== yest && state.user.lastCoachDate !== today) {
+        state.user.dailyStreak = 0;
+      }
+      state.user.todayCoachDate = today;
+      state.user.todayCoachSteps = [false, false, false];
+      saveUser();
+    }
+  }
+
+  function renderDailyCoach() {
+    if (!state.user) return;
+    checkDailyCoachReset();
+
+    const streak = state.user.dailyStreak || 0;
+    const streakEl = $('coach-streak-display');
+    if (streakEl) streakEl.textContent = streak;
+
+    const dashStreak = $('dash-streak');
+    if (dashStreak) dashStreak.textContent = `${streak} 🔥`;
+
+    const steps = state.user.todayCoachSteps || [false, false, false];
+    const completedCount = steps.filter(Boolean).length;
+
+    const countEl = $('coach-progress-count');
+    if (countEl) countEl.textContent = `${completedCount} / 3 Tamamlandı`;
+
+    const fillEl = $('coach-progress-fill');
+    if (fillEl) fillEl.style.width = `${Math.round((completedCount / 3) * 100)}%`;
+
+    // Render Steps
+    for (let i = 1; i <= 3; i++) {
+      const stepItem = $(`coach-step-${i}`);
+      const btnAction = $(`btn-coach-step-${i}`);
+      const isDone = !!steps[i - 1];
+
+      if (stepItem) {
+        if (isDone) stepItem.classList.add('completed');
+        else stepItem.classList.remove('completed');
+      }
+
+      if (btnAction) {
+        if (isDone) {
+          btnAction.outerHTML = `<span class="coach-done-badge" id="btn-coach-step-${i}">✅ Tamamlandı</span>`;
+        } else {
+          if (btnAction.tagName === 'SPAN') {
+            btnAction.outerHTML = `<button class="btn btn-sm btn-coach" id="btn-coach-step-${i}" onclick="app.launchCoachStep(${i})">Başla 🚀</button>`;
+          }
+        }
+      }
+    }
+
+    const bonusBox = $('coach-bonus-box');
+    if (bonusBox) {
+      if (completedCount === 3) {
+        bonusBox.className = 'coach-bonus-box all-completed';
+        bonusBox.innerHTML = '<span class="bonus-icon">🎉</span><span class="bonus-text">Harika iş! Bugünün 3 adımını tamamladın, <strong>+50 Bonus XP kazandın</strong> ve seriyi büyüttün!</span>';
+      } else {
+        bonusBox.className = 'coach-bonus-box';
+        bonusBox.innerHTML = '<span class="bonus-icon">🎁</span><span class="bonus-text">Günün 3 adımını tamamla: <strong>+50 Bonus XP</strong> kazan ve seriyi büyüt!</span>';
+      }
+    }
+  }
+
+  function launchCoachStep(stepNum) {
+    soundClick();
+    if (stepNum === 1) {
+      openEyeGymScreen();
+    } else if (stepNum === 2) {
+      openSchulteScreen();
+    } else if (stepNum === 3) {
+      openMarathonIntro();
+    }
+  }
+
+  function recordCoachStep(stepNum) {
+    if (!state.user) return;
+    checkDailyCoachReset();
+
+    const idx = stepNum - 1;
+    if (!state.user.todayCoachSteps) state.user.todayCoachSteps = [false, false, false];
+
+    if (!state.user.todayCoachSteps[idx]) {
+      state.user.todayCoachSteps[idx] = true;
+      saveUser();
+
+      const completedCount = state.user.todayCoachSteps.filter(Boolean).length;
+
+      // Check if all 3 steps completed today
+      if (completedCount === 3) {
+        const today = getTodayDateString();
+        if (state.user.lastCoachDate !== today) {
+          state.user.lastCoachDate = today;
+          state.user.dailyStreak = (state.user.dailyStreak || 0) + 1;
+          addXP(50);
+          saveUser();
+
+          // Check badges (chain_breaker, iron_will_14, streak_3, streak_7)
+          checkBadges();
+
+          setTimeout(() => {
+            soundCelebration();
+            triggerVibrate([100, 50, 100, 50, 150]);
+            alert(`🔥 MUHTEŞEM! Günlük 15 Dakika Antrenman Koçunu tamamladın!\n\nZinciri Kırma serin: ${state.user.dailyStreak} GÜN!\n+50 Bonus XP kazandın! Her gün devam ederek hızını zirveye taşı!`);
+          }, 600);
+        }
+      }
+      renderDailyCoach();
+    }
+  }
+
   function init() {
+    initTheme();
     setupPWA();
     if (loadUser()) {
       // Existing user
@@ -714,6 +888,7 @@ const app = (() => {
     const weeklyPct = Math.min(100, Math.round((weeklyDone / weeklyTarget) * 100));
     $('weekly-goal-pct').textContent = `%${weeklyPct}`;
     $('weekly-goal-fill').style.width = weeklyPct + '%';
+    renderDailyCoach();
   }
 
   // ---- Exercise Mode Selection ----
@@ -1289,6 +1464,7 @@ const app = (() => {
     const newBadges = checkBadges();
     state.newBadges = newBadges;
 
+    recordCoachStep(3);
     // Show results screen
     showScreen('screen-results');
 
@@ -2032,6 +2208,7 @@ const app = (() => {
       state.user.schulteBestTime[size] = totalSec;
     }
     state.user.schulteCompleted = (state.user.schulteCompleted || 0) + 1;
+    recordCoachStep(2);
 
     let xp = 15;
     if (isRecord) xp += 10;
@@ -2345,6 +2522,7 @@ const app = (() => {
     triggerVibrate([50, 50, 100]);
 
     alert('🦅 Tebrikler! 60 saniyelik göz kası antrenmanını başarıyla tamamladın (+15 XP). Gözlerin hızlı okuma ve LGS paragrafları için tam forma girdi!');
+    recordCoachStep(1);
   }
 
   function pauseEyeGym() {
@@ -3199,6 +3377,7 @@ const app = (() => {
     }
     triggerVibrate([60, 40, 100]);
 
+    recordCoachStep(3);
     // Show Results Screen
     showScreen('screen-lgs-marathon-results');
   }
@@ -3340,6 +3519,9 @@ const app = (() => {
     finishMarathonPrompt,
     exitMarathonPrompt,
     finishLGSMarathon,
+    cycleTheme,
+    launchCoachStep,
+    recordCoachStep,
   };
 })();
 

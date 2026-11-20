@@ -168,6 +168,7 @@
 
     <div class="quick-controls">
       <button class="quick-btn hidden" id="btn-install-pwa" onclick="app.promptInstall()">📲 Yükle</button>
+      <button class="quick-btn" id="btn-toggle-theme" onclick="app.cycleTheme()" title="Tema Değiştir (Aydınlık / Sepya / Karanlık)">☀️ Aydınlık</button>
       <button class="quick-btn" onclick="app.openReportCard()">📄 Karne</button>
       <button class="quick-btn" id="btn-toggle-sound" onclick="app.toggleSound()">🔊 Ses: Açık</button>
       <button class="quick-btn" id="btn-toggle-metronome" onclick="app.toggleMetronome()">🎵 Ritim: Kapalı</button>
@@ -217,6 +218,72 @@
       <div class="stat-card">
         <div class="stat-value" id="dash-streak">0 🔥</div>
         <div class="stat-label">Gün Serisi</div>
+      </div>
+    </div>
+
+    <!-- Gunluk 15 Dakika Antrenman Kocu -->
+    <div class="daily-coach-card" id="daily-coach-card">
+      <div class="coach-card-header">
+        <div class="coach-title-wrap">
+          <span class="coach-badge-tag">GÜNLÜK HEDEF</span>
+          <h3 class="coach-title">🎯 15 Dakika Antrenman Koçu</h3>
+          <p class="coach-desc">Zinciri kırma! Her gün 3 adımı tamamlayarak okuma hızını zirveye taşı.</p>
+        </div>
+        <div class="streak-badge-pill" id="coach-streak-pill" title="Mevcut Gün Serisi">
+          <span class="streak-fire">🔥</span>
+          <span class="streak-num" id="coach-streak-display">0</span>
+          <span class="streak-label">Gün</span>
+        </div>
+      </div>
+
+      <div class="coach-progress-wrapper">
+        <div class="coach-progress-info">
+          <span class="coach-progress-title">Bugünkü Durum:</span>
+          <span class="coach-progress-count" id="coach-progress-count">0 / 3 Tamamlandı</span>
+        </div>
+        <div class="coach-progress-bar">
+          <div class="coach-progress-fill" id="coach-progress-fill" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="coach-steps-grid">
+        <div class="coach-step-item" id="coach-step-1">
+          <div class="coach-step-icon">👁️</div>
+          <div class="coach-step-details">
+            <div class="coach-step-name">1. Adım: Göz Isınması (2 dk)</div>
+            <div class="coach-step-sub">Sakkadik sıçrama & genişleyen piramit</div>
+          </div>
+          <div class="coach-step-action">
+            <button class="btn btn-sm btn-coach" id="btn-coach-step-1" onclick="app.launchCoachStep(1)">Başla 🚀</button>
+          </div>
+        </div>
+
+        <div class="coach-step-item" id="coach-step-2">
+          <div class="coach-step-icon">🔢</div>
+          <div class="coach-step-details">
+            <div class="coach-step-name">2. Adım: Çevik Görüş (3 dk)</div>
+            <div class="coach-step-sub">Şulte tablosu ile geniş açı odaklanma</div>
+          </div>
+          <div class="coach-step-action">
+            <button class="btn btn-sm btn-coach" id="btn-coach-step-2" onclick="app.launchCoachStep(2)">Başla 🚀</button>
+          </div>
+        </div>
+
+        <div class="coach-step-item" id="coach-step-3">
+          <div class="coach-step-icon">📖</div>
+          <div class="coach-step-details">
+            <div class="coach-step-name">3. Adım: Paragraf Antrenmanı (10 dk)</div>
+            <div class="coach-step-sub">LGS maratonu veya metin okuma egzersizi</div>
+          </div>
+          <div class="coach-step-action">
+            <button class="btn btn-sm btn-coach" id="btn-coach-step-3" onclick="app.launchCoachStep(3)">Başla 🚀</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="coach-bonus-box" id="coach-bonus-box">
+        <span class="bonus-icon">🎁</span>
+        <span class="bonus-text">Günün 3 adımını tamamla: <strong>+50 Bonus XP</strong> kazan ve seriyi büyüt!</span>
       </div>
     </div>
 
