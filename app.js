@@ -286,18 +286,31 @@ const app = (() => {
     const num = $('countdown-number');
     overlay.classList.remove('hidden');
     let count = 3;
-    num.textContent = count;
+
+    function renderCount(val) {
+      num.textContent = val;
+      num.classList.remove('pop');
+      void num.offsetWidth; // Force reflow so single pop animation triggers smoothly
+      num.classList.add('pop');
+      if (typeof playTone === 'function') {
+        playTone(val === 1 ? 784 : 523, 'sine', 0.1);
+      }
+      triggerVibrate(35);
+    }
+
+    renderCount(count);
 
     const interval = setInterval(() => {
       count--;
       if (count > 0) {
-        num.textContent = count;
+        renderCount(count);
       } else {
         clearInterval(interval);
         overlay.classList.add('hidden');
+        num.classList.remove('pop');
         callback();
       }
-    }, 800);
+    }, 850);
   }
 
   function showConfetti() {
