@@ -321,6 +321,21 @@
       </div>
     </div>
 
+    <!-- LGS Marathon Simulator Mode -->
+    <div class="mode-card marathon-mode-card" onclick="app.openMarathonIntro()">
+      <div class="mode-top">
+        <div class="mode-icon" style="background:rgba(255, 165, 2, 0.15); color:#d35400;">🏹</div>
+        <div class="mode-info">
+          <h3>LGS Paragraf Maratonu</h3>
+          <p>10'lu yeni nesil deneme simülatörü & süre yönetimi</p>
+        </div>
+        <span class="badge badge-yellow" style="background:#FFA502; color:#FFFFFF;">Yeni Deneme</span>
+      </div>
+      <div class="mode-desc">
+        <strong>🏆 Gerçek Sınav Simülatörü:</strong> 10 yeni nesil paragraf sorusu, 750 saniye (12.5 dk) geri sayım, soru navigasyon paleti, şık eleme ve sınav sonu tam çözümlü analiz raporu!
+      </div>
+    </div>
+
     <!-- Bionic Reading Mode (Experimental) -->
     <div class="mode-card" onclick="app.selectMode('bionic')">
       <div class="mode-top">
@@ -758,6 +773,178 @@
 
     <div class="schulte-tip-box mt-16 text-center">
       <small>💡 <strong>Göz Jimnastiği:</strong> Gözlerini ekranda sürekli gezdirmek yerine merkezdeki noktaya odaklanarak periferik (kenar) görüşünle sayıları fark etmeye çalış.</small>
+    </div>
+  </div>
+
+  <!-- ========== LGS MARATHON INTRO SCREEN ========== -->
+  <div id="screen-lgs-marathon-intro" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.goToDashboard()">←</button>
+      <h2>🏹 LGS Paragraf Maratonu</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="card marathon-intro-hero mb-16 text-center">
+      <div class="marathon-badge-pill mb-8">MEB LGS YENİ NESİL FORMATI</div>
+      <h3 style="font-size:19px; font-weight:800; color:var(--text); margin-bottom:6px;">10'lu Paragraf Deneme Simülatörü</h3>
+      <p style="font-size:13px; color:var(--text-light); line-height:1.5; margin:0 auto; max-width:380px;">
+        Gerçek sınav baskısını yenmek için tasarlanmış zaman sınırlı paragraf provası!
+      </p>
+    </div>
+
+    <div class="marathon-rules-grid mb-16">
+      <div class="marathon-rule-card">
+        <span class="rule-icon">📝</span>
+        <strong>10 Soru</strong>
+        <small>Tüm MEB soru tipleri</small>
+      </div>
+      <div class="marathon-rule-card">
+        <span class="rule-icon">⏱️</span>
+        <strong>12.5 Dakika</strong>
+        <small>Soru başı 75 saniye</small>
+      </div>
+      <div class="marathon-rule-card">
+        <span class="rule-icon">⚖️</span>
+        <strong>3 Yanlış 1 Doğru</strong>
+        <small>LGS net hesaplaması</small>
+      </div>
+      <div class="marathon-rule-card">
+        <span class="rule-icon">🔍</span>
+        <strong>Tam Çözümlü</strong>
+        <small>Detaylı analiz raporu</small>
+      </div>
+    </div>
+
+    <div class="card mb-20" style="background:rgba(255, 165, 2, 0.08); border-left:4px solid #FFA502;">
+      <h4 style="font-size:13.5px; font-weight:700; color:#B45309; margin-bottom:4px;">💡 Sınav Stratejisi İpuçları:</h4>
+      <ul style="font-size:12.5px; color:#78350F; line-height:1.55; padding-left:18px; margin:0;">
+        <li>Önce soru kökünü oku, ardından metne odaklan.</li>
+        <li>Emin olmadığın şıkların yanındaki <strong>(✖)</strong> butonuna basarak şıkları ele.</li>
+        <li>Tereddütte kaldığın soruyu <strong>🚩 Bayrak</strong> ile işaretle, süren kalırsa soru paletinden dön.</li>
+      </ul>
+    </div>
+
+    <button class="btn btn-primary btn-block btn-lg" onclick="app.startLGSMarathon()">
+      🚀 Maratonu Başlat (12:30)
+    </button>
+  </div>
+
+  <!-- ========== LGS MARATHON SIMULATOR SCREEN ========== -->
+  <div id="screen-lgs-marathon" class="screen">
+    
+    <!-- Top HUD Bar -->
+    <div class="marathon-hud card mb-10">
+      <div class="marathon-hud-left">
+        <button class="btn-icon-subtle" onclick="app.exitMarathonPrompt()">←</button>
+        <div>
+          <span class="marathon-hud-tag" id="marathon-hud-tag">LGS DENEME</span>
+          <h3 class="marathon-hud-qtitle" id="marathon-hud-title">Soru 1 / 10</h3>
+        </div>
+      </div>
+
+      <div class="marathon-hud-right">
+        <div class="marathon-timer-pill" id="marathon-timer-pill">
+          <span class="timer-icon">⏱️</span>
+          <span class="timer-digits" id="marathon-timer-text">12:30</span>
+        </div>
+        <button class="btn btn-sm btn-primary" onclick="app.finishMarathonPrompt()">🏁 Bitir</button>
+      </div>
+    </div>
+
+    <!-- Palette Bar -->
+    <div class="marathon-palette-wrapper mb-10">
+      <div class="marathon-palette" id="marathon-palette">
+        <!-- Buttons 1..10 generated dynamically -->
+      </div>
+    </div>
+
+    <!-- Question Box -->
+    <div class="card marathon-workspace mb-12">
+      <div class="marathon-qtype-strip mb-8">
+        <span class="badge badge-purple" id="marathon-qtype-badge">🎯 Ana Düşünce</span>
+        <button class="btn-flag-toggle" id="marathon-flag-btn" onclick="app.toggleQuestionFlag()">
+          🚩 <span id="marathon-flag-text">Soruyu İşaretle</span>
+        </button>
+      </div>
+
+      <div class="marathon-passage-box mb-12" id="marathon-passage"></div>
+
+      <div class="marathon-prompt-box mb-10" id="marathon-prompt"></div>
+
+      <div class="marathon-options-list" id="marathon-options-list">
+        <!-- Rendered options -->
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="marathon-bottom-bar">
+      <button class="btn btn-secondary" id="marathon-prev-btn" onclick="app.prevMarathonQuestion()">
+        ⬅️ Önceki
+      </button>
+      <button class="btn btn-primary" id="marathon-next-btn" onclick="app.nextMarathonQuestion()">
+        Sonraki Soru ➡️
+      </button>
+    </div>
+  </div>
+
+  <!-- ========== LGS MARATHON RESULTS SCREEN ========== -->
+  <div id="screen-lgs-marathon-results" class="screen">
+    <div class="top-bar">
+      <button class="back-btn" onclick="app.goToDashboard()">←</button>
+      <h2>🏹 Maraton Sonuç Raporu</h2>
+      <div class="spacer"></div>
+    </div>
+
+    <div class="results-hero marathon-results-hero mb-16">
+      <div class="result-emoji" id="marathon-res-emoji">🏆</div>
+      <h2 id="marathon-res-title">Harika Bir Sınav Çıkardın!</h2>
+      <p id="marathon-res-sub">10 soruluk LGS Paragraf Maratonunu başarıyla tamamladın.</p>
+    </div>
+
+    <div class="results-stats mb-16">
+      <div class="result-stat">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-value" id="marathon-stat-correct" style="color:var(--success);">0</div>
+        <div class="stat-label">Doğru</div>
+      </div>
+      <div class="result-stat">
+        <div class="stat-icon">❌</div>
+        <div class="stat-value" id="marathon-stat-wrong" style="color:var(--danger);">0</div>
+        <div class="stat-label">Yanlış</div>
+      </div>
+      <div class="result-stat highlight">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value" id="marathon-stat-net">0.00</div>
+        <div class="stat-label">LGS Neti</div>
+      </div>
+      <div class="result-stat">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value" id="marathon-stat-time">00:00</div>
+        <div class="stat-label">Toplam Süre</div>
+      </div>
+    </div>
+
+    <div class="card mb-16" style="background:#F0FDF4; border:1px solid #BBF7D0;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:24px;">⚡</span>
+        <div>
+          <strong style="color:#166534; font-size:13.5px;" id="marathon-speed-title">Soru Başına Ortalama: 52 sn</strong>
+          <p style="font-size:12px; color:#15803D; margin:2px 0 0;" id="marathon-speed-desc">
+            MEB LGS ortalamasına (90 sn) göre tam <strong>6 dakika 20 saniye</strong> kazandın!
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="section-title">🔍 Soru Çözümleri ve Cevap İncelemesi</h3>
+    <div class="marathon-review-list" id="marathon-review-list">
+      <!-- 10 Question solution review cards -->
+    </div>
+
+    <div class="results-buttons mt-16 mb-24">
+      <button class="btn btn-primary" onclick="app.openReportCard()">📄 Karneme Ekle & İndir</button>
+      <button class="btn btn-secondary" onclick="app.startLGSMarathon()">🔄 Yeniden Çöz</button>
+      <button class="btn btn-secondary" onclick="app.goToDashboard()">🏠 Ana Sayfa</button>
     </div>
   </div>
 

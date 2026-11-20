@@ -571,6 +571,7 @@ const BADGES = [
   { id: "bionic_explorer", name: "Deneysel Kaşif", icon: "🧪", description: "Biyonik Okuma modunu dene", condition: (stats) => stats.usedModes.has("bionic") },
   { id: "effective_150", name: "Etkili Okuyucu", icon: "💎", description: "Etkili okuma hızı 150 KDK üstü", condition: (stats) => stats.bestEffective >= 150 },
   { id: "effective_200", name: "Elmas Okuyucu", icon: "💠", description: "Etkili okuma hızı 200 KDK üstü", condition: (stats) => stats.bestEffective >= 200 },
+  { id: "marathon_hero", name: "Maraton Şampiyonu", icon: "🥇", description: "LGS Paragraf Maratonunu tamamla", condition: (stats) => stats.marathonCompleted >= 1 },
 ];
 
 // Seviye sistemi
@@ -595,4 +596,166 @@ const TIPS = [
   "💡 Her gün 15 dakika pratik yaparak okuma hızını ciddi şekilde geliştirebilirsin!",
   "💡 Metni okumadan önce başlığına bakıp ne hakkında olduğunu tahmin etmek anlamayı kolaylaştırır.",
   "💡 Düzenli uyku, öğrenme ve okuma performansı için çok önemlidir.",
+];
+
+// ============================================================
+// LGS Paragraf Maratonu (10'lu Deneme Simülatörü Soruları)
+// MEB 8. Sınıf LGS Formatı & Tam Çözümlü Paragraf Seti
+// ============================================================
+const LGS_MARATHON_QUESTIONS = [
+  {
+    id: 1,
+    type: "Ana Fikir",
+    badge: "🎯 Ana Düşünce",
+    title: "1. Soru: Yapay Zekâ ve İnsan Yaratıcılığı",
+    passage: `Günümüzde yapay zekâ sistemleri saniyeler içinde binlerce görsel üretebilmekte, şiirler yazabilmekte ve besteler yapabilmektedir. Ancak bu üretimlerin ardında yatan süreç, gerçek bir duygu veya yaşantı değil; daha önce insanlar tarafından üretilmiş verilerin karmaşık algoritmalarla yeniden harmanlanmasıdır. Oysa bir sanat eserini değerli kılan şey, yalnızca kusursuz biçimi değil; sanatçının yaşadığı kederi, sevinci, umudu ve dünyaya özgü bakışını o esere sindirebilmesidir. Bir makine ne kadar gelişirse gelişsin, henüz kalbi kırılmamış ya da bir gün batımında nedensiz bir hüzün duymamıştır. Bu yüzden sanat, daima insanın kendi iç dünyasıyla kurduğu biricik köprü olarak kalacaktır.`,
+    question: `Bu parçada asıl anlatılmak istenen düşünce aşağıdakilerden hangisidir?`,
+    options: [
+      "Teknoloji geliştikçe geleneksel sanat dalları önemini kaybedecektir.",
+      "Yapay zekânın ürettiği eserler, sanatçılara yeni ilham kapıları açmaktadır.",
+      "Gerçek sanat, algoritmaların değil ancak insani duygu ve yaşanmışlıkların ürünü olabilir.",
+      "Bilgisayarların ürettiği sanat eserleri kusursuz bir estetik seviyeye ulaşmıştır."
+    ],
+    correct: 2,
+    explanation: `Yazar metin boyunca yapay zekânın veri harmanladığını ancak duygu ve yaşantıya sahip olamayacağını vurgulamaktadır. 'Bu yüzden sanat, daima insanın kendi iç dünyasıyla kurduğu biricik köprü olarak kalacaktır' cümlesi de asıl düşüncenin C seçeneği olduğunu doğrudan destekler.`
+  },
+  {
+    id: 2,
+    type: "Yardımcı Fikir",
+    badge: "🔍 Çıkarılamaz",
+    title: "2. Soru: Göbeklitepe ve Tarihin Sıfır Noktası",
+    passage: `Şanlıurfa yakınlarındaki Göbeklitepe, arkeoloji dünyasının yerleşik tarih anlayışını kökünden sarsmıştır. Bu keşiften önce bilim dünyası, insanların önce tarımı keşfedip köyler kurduğunu, ardından dini yapılar inşa ettiğini savunuyordu. Ancak Göbeklitepe'de bulunan ve günümüzden yaklaşık 12 bin yıl öncesine tarihlenen devasa 'T' biçimli sütunlar, henüz tarıma geçmemiş avcı-toplayıcı toplulukların bile tapınaklar inşa etmek amacıyla bir araya geldiklerini gösterdi. Üzerlerinde tilki, boğa, akrep gibi yabani hayvan kabartmaları bulunan bu sütunlar, o dönemin insanlarının gelişmiş bir sembolik düşünceye ve mimari uzmanlığa sahip olduğunu kanıtlamaktadır.`,
+    question: `Bu parçadan Göbeklitepe ile ilgili olarak aşağıdakilerden hangisi ÇIKARILAMAZ?`,
+    options: [
+      "Arkeologların yerleşik tarih tezlerini yeniden gözden geçirmesini sağladığı",
+      "Sütunların üzerinde dönemin yabani fauna ve hayvan figürlerinin yer aldığı",
+      "Tapınakları inşa eden toplulukların ileri düzeyde tarım faaliyetleri yürüttüğü",
+      "Günümüzden yaklaşık on iki bin yıl önceki avcı-toplayıcılar tarafından yapıldığı"
+    ],
+    correct: 2,
+    explanation: `Metinde açıkça 'henüz tarıma geçmemiş avcı-toplayıcı toplulukların bile tapınaklar inşa etmek amacıyla bir araya geldikleri' belirtilmektedir. Dolayısıyla bu toplulukların 'ileri düzeyde tarım yürüttüğü' yargısı metne tamamen aykırıdır.`
+  },
+  {
+    id: 3,
+    type: "Akışı Bozan Cümle",
+    badge: "✂️ Düşünce Akışı",
+    title: "3. Soru: Sokak Oyunları ve Çocuk Gelişimi",
+    passage: `(I) Geleneksel sokak oyunları, çocukların yalnızca fiziksel enerjilerini boşaltmalarını sağlamaz; aynı zamanda sosyal kuralları ve adalet kavramını yaşayarak öğrenmelerine aracı olur. (II) Saklambaç, körebe ya da mendil kapmaca oynayan çocuklar, yenilmeyi kabullenmeyi ve başkalarının haklarına saygı duymayı doğal yoldan deneyimler. (III) Günümüz video oyunları ise üst düzey grafik motorları ve sürükleyici senaryolarıyla milyonlarca oyuncuyu büyülemektedir. (IV) Oyun esnasında kendi aralarında kurdukları bu mikro toplum düzeni, çocuğun ileriki yaşlarda toplumsal yaşama uyum sağlamasını kolaylaştırır.`,
+    question: `Bu parçada numaralanmış cümlelerden hangisi düşüncenin akışını bozmaktadır?`,
+    options: ["I", "II", "III", "IV"],
+    correct: 2,
+    explanation: `Parçanın genelinde (I, II ve IV numaralı cümlelerde) geleneksel sokak oyunlarının çocukların sosyal, ahlaki ve psikolojik gelişimine katkıları anlatılmaktadır. III numaralı cümlede ise aniden günümüz video oyunlarının grafik ve senaryo özelliklerinden bahsedilerek akış bozulmuştur.`
+  },
+  {
+    id: 4,
+    type: "Mantık ve Muhakeme",
+    badge: "🧩 Mantık - Sıralama",
+    title: "4. Soru: Bilim Şenliği Proje Sunumları",
+    passage: `Bir ortaokulun bilim şenliğinde Ali, Beren, Cemil ve Derya adlı dört öğrenci Robotik, Biyoloji, Çevre ve Uzay projelerini sırayla sunacaktır. Sunum sıralarıyla ilgili bilinenler şunlardır:\n• Biyoloji projesi, Uzay projesinden hemen önceki sırada sunulmuştur.\n• Ali'nin sunumu ne ilk ne de son sıradadır.\n• Beren, Robotik projesini sunmuştur ve bu sunum 4. (son) sıradadır.\n• Cemil'in projesi Ali'nin projesinden hemen öncedir.`,
+    question: `Bu bilgilere göre 1. sırada hangi öğrenci hangi projeyi sunmuştur?`,
+    options: [
+      "Cemil - Biyoloji Projesi",
+      "Ali - Çevre Projesi",
+      "Cemil - Uzay Projesi",
+      "Derya - Biyoloji Projesi"
+    ],
+    correct: 0,
+    explanation: `Beren 4. sıradadır (Robotik). Ali ne ilk ne sondur ve Cemil Ali'den hemen öncedir, dolayısıyla Cemil 1. sırada, Ali 2. sırada olmak zorundadır (Derya 3. sıraya kalır). Biyoloji projesi Uzay'dan hemen önce olduğuna göre 1. ve 2. sıralar Biyoloji ve Uzay olmalıdır. Yani 1. sıradaki Cemil Biyoloji projesini sunmuştur.`
+  },
+  {
+    id: 5,
+    type: "Anlatım Teknikleri",
+    badge: "🎨 Anlatım Biçimleri",
+    title: "5. Soru: Karadeniz Yaylalarında Sabah",
+    passage: `Günün ilk ışıkları, vadiyi saran pamuksu sis perdesini usulca yırtarak ladin ağaçlarının nemli dallarına düşüyordu. Uzaklardan deli bir derenin taşlara çarpan çılgın türküsü duyuluyor, çimenlerin üzerindeki çiğ damlaları minik elmaslar gibi parıldıyordu. Rüzgâr, kekik ve çam kokularını sırtlayıp yüzümüze serin bir selam bırakarak geçip gitti. Doğanın bu uyanışı karşısında insan, adeta bir mabetteymişçesine derin bir sükûnetle nefesini tutuyordu.`,
+    question: `Bu parçanın anlatımında aşağıdakilerden hangisine BAŞVURULMAMIŞTIR?`,
+    options: [
+      "Benzetmeye (çiğ damlalarının elmaslara benzetilmesi)",
+      "İşitsel ögelere (derenin sesinin betimlenmesi)",
+      "Kişileştirmeye (rüzgârın selam bırakıp gitmesi)",
+      "Sayısal verilerden yararlanmaya"
+    ],
+    correct: 3,
+    explanation: `Metinde pamuksu sis / minik elmaslar (benzetme), derenin sesi (işitsel öge), rüzgarın selam bırakması / derenin türkü söylemesi (kişileştirme) yer almaktadır. Ancak hiçbir sayısal veri (istatistik/ölçüm) kullanılmamıştır.`
+  },
+  {
+    id: 6,
+    type: "Metin Karşılaştırma",
+    badge: "⚖️ İki Metin Analizi",
+    title: "6. Soru: Çöl ve Kutup Canlıları",
+    passage: `1. Metin: Kutup ayıları, Kuzey Kutbu'nun dondurucu soğuklarında hayatta kalabilmek için derilerinin altında 10 cm kalınlığında bir yağ tabakası ve ısıyı hapseden şeffaf, içi boş tüylerle donatılmıştır. Geniş patileri ise karda batmadan yürümelerini sağlar.\n\n2. Metin: Sahra Çölü'nde yaşayan Fennek tilkisi, kavurucu sıcaklarda vücut ısısını tahliye edebilmek için vücuduna oranla olağanüstü büyüklükte kulaklara sahiptir. Ayrıca tüylü ayak tabanları, kızgın kumlarda yanmadan koşabilmesine imkân verir.`,
+    question: `Bu iki metnin ORTAK yönü aşağıdakilerden hangisidir?`,
+    options: [
+      "Aynı coğrafi iklim kuşağındaki canlıları konu edinmeleri",
+      "Canlıların zorlu çevre koşullarına uyum (adaptasyon) özelliklerini açıklamaları",
+      "Nesli tükenme tehlikesi altında olan canlıları tanıtmaları",
+      "İnsan faaliyetlerinin vahşi yaşama olumsuz etkilerine dikkat çekmeleri"
+    ],
+    correct: 1,
+    explanation: `1. metin kutup ayısının soğuğa adaptasyonunu, 2. metin fennek tilkisinin çöl sıcağına adaptasyonunu anlatmaktadır. Her iki metin de canlıların zorlu doğa koşullarına geliştirdiği biyolojik uyumları (adaptasyonları) konu almaktadır.`
+  },
+  {
+    id: 7,
+    type: "Cümlede Anlam",
+    badge: "🎯 Neden-Sonuç / Amaç",
+    title: "7. Soru: Okyanuslardaki Plastik Adaları",
+    passage: `Her yıl milyonlarca ton plastik atık akarsular yoluyla denizlere ulaşmaktadır. Bu atıklar, okyanus akıntılarıyla bir araya toplanarak devasa plastik adaları oluşturmaktadır. Deniz canlıları bu parlak ve renkli mikroplastikleri besin zannettikleri için midelerine doldurmakta ve ne yazık ki açlıktan hayatını kaybetmektedir. Bilim insanları bu ölümcül gidişatı durdurmak amacıyla biyolojik olarak çözünebilen yosun bazlı alternatif ambalajlar geliştirmek için gece gündüz çalışmaktadır.`,
+    question: `Bu parçadaki altı çizili cümlelerin anlam ilişkisi aşağıdakilerin hangisinde sırasıyla doğru verilmiştir?`,
+    options: [
+      "1. Neden-Sonuç — 2. Amaç-Sonuç",
+      "1. Amaç-Sonuç — 2. Koşul-Sonuç",
+      "1. Koşul-Sonuç — 2. Neden-Sonuç",
+      "1. Neden-Sonuç — 2. Karşılaştırma"
+    ],
+    correct: 0,
+    explanation: `Deniz canlılarının atıkları besin zannetmesi bir 'NEDEN', midelerini bunlarla doldurup açlıktan ölmeleri bir 'SONUÇ'tur. Bilim insanlarının yosun bazlı alternatif üretme eylemi ise 'ölümcül gidişatı durdurmak' AMACINA yöneliktir. Dolayısıyla sıralama Neden-Sonuç ve Amaç-Sonuç'tur.`
+  },
+  {
+    id: 8,
+    type: "Sözcükte Anlam",
+    badge: "📖 Deyim ve Mecaz",
+    title: "8. Soru: Ustanın Nasihati",
+    passage: `Eski bir bakır ustası, dükkânına yeni başlayan genç çırağına çekici uzatırken şöyle demişti: 'Evlat, bu meslekte acele eden kendi ayağına çelme takar. Bir tepsiye vururken göz nuru dökmeyi bileceksin. Müşterinin getirdiği eski bir cezveyi yabana atma; işini öyle bir yap ki herkes seni parmakla göstersin. İğneyle kuyu kazar gibi sabırlı olmazsan usta olamazsın.'`,
+    question: `Ustanın çırağına verdiği öğütler arasında aşağıdaki deyimlerden hangisinin ifade ettiği anlam YOKTUR?`,
+    options: [
+      "Göz nuru dökmek (Büyük dikkat ve emek harcamak)",
+      "Parmakla gösterilmek (Seçkin ve başarılı bulunmak)",
+      "Yabana atmak (Önemsiz görüp dikkate almamak)",
+      "Pireyi deve yapmak (Küçük bir olayı aşırı büyütmek)"
+    ],
+    correct: 3,
+    explanation: `Parçada 'göz nuru dökmek' (emek vermek), 'yabana atmamak' (önemsiz görmemek), 'parmakla gösterilmek' (başarılı bulunmak) deyimleri doğrudan yer almaktadır. Ancak 'pireyi deve yapmak' deyimi ve anlamı metinde hiç geçmemektedir.`
+  },
+  {
+    id: 9,
+    type: "Bilimsel Paragraf",
+    badge: "🧪 Bilim - Çıkarım",
+    title: "9. Soru: Biyolüminesans (Işık Saçan Canlılar)",
+    passage: `Güneş ışığının asla ulaşamadığı okyanusların zifiri karanlık derinliklerinde yaşayan pek çok canlı, kendi ışığını üretme yeteneğine sahiptir. Biyolüminesans adı verilen bu biyokimyasal reaksiyon, lüsiferin maddesinin oksijenle tepkimeye girmesiyle gerçekleşir. İşin büyüleyici yanı, bu ışığın neredeyse %100'ünün saf ışık olması, yani sıradan bir ampul gibi ısı enerjisi kaybetmemesidir. Derin deniz fener balığı bu ışığı avlarını kendine çekmek için bir yem olarak kullanırken; bazı karides türleri ise avcılarının gözünü aniden kamaştırıp kaçabilmek için parlak bir ışık bulutu püskürtür.`,
+    question: `Bu parçaya göre canlıların biyolüminesans özelliğini kullanma amaçları arasında aşağıdakilerden hangisi GÖSTERİLEMEZ?`,
+    options: [
+      "Avlarını kendilerine doğru çekip tuzağa düşürmek",
+      "Vücut sıcaklıklarını dondurucu sularda yüksek tutmak",
+      "Düşmanlarının gözünü kamaştırarak tehlikelerden kaçmak",
+      "Karanlık ortamda yaşamsal faaliyetlerini sürdürmek"
+    ],
+    correct: 1,
+    explanation: `Metinde biyolüminesans ışığının neredeyse hiç ısı kaybetmediği, yani ısı üretmediği açıkça belirtilmektedir ('sıradan bir ampul gibi ısı enerjisi kaybetmez'). Dolayısıyla vücut sıcaklığını artırmak amacıyla kullanılamaz.`
+  },
+  {
+    id: 10,
+    type: "Eleştirel Okuma",
+    badge: "💡 Yazarın Tutumu",
+    title: "10. Soru: Nicelik mi Nitelik mi?",
+    passage: `Günümüzde sosyal medyada sıkça karşılaşıyoruz: 'Bu ay tam 20 kitap bitirdim!', 'Hedefim yılda 250 kitap okumak!'. Ne yazık ki okuma eylemi de çağımızın hız ve tüketim çılgınlığına kurban edilmiş durumda. Bir kitabı hız trenine biner gibi alelacele tüketmek, sayfaları sadece gözle tarayıp geçmek marifet değildir. Önemli olan, bir kitabı bitirdiğinde o kitabın senin zihninde hangi yeni pencereleri açtığı, sana hangi yeni soruları sordurduğudur. Yavaş ve sindire sindire okunan tek bir klasik roman, yarış pistindeymiş gibi tüketilen elli kitaptan çok daha fazla dönüştürür insanı.`,
+    question: `Bu parçanın yazarı aşağıdakilerden hangisini eleştirmektedir?`,
+    options: [
+      "Kitap fiyatlarının gençlerin bütçesini aşmasını",
+      "Sosyal medyanın kitap tanıtımlarına yer vermemesini",
+      "Okumanın anlama ve derinlikten uzaklaşıp salt sayısal bir yarışa dönüştürülmesini",
+      "Klasik romanların günümüz gençleri tarafından zor anlaşılmasını"
+    ],
+    correct: 2,
+    explanation: `Yazar 'okuma eyleminin hız ve tüketim çılgınlığına kurban edildiğini', 'marifetin sayfa adedi değil zihinde açılan pencereler olduğunu' belirterek okumanın niceliksel/sayısal bir yarışa çevrilmesini eleştirmektedir.`
+  }
 ];

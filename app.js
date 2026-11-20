@@ -48,6 +48,14 @@ const app = (() => {
     metronomeBPM: 180,
     metronomeTone: 'wood',
     metronomeInterval: null,
+    marathonIndex: 0,
+    marathonAnswers: new Array(10).fill(null),
+    marathonFlags: new Array(10).fill(false),
+    marathonEliminated: Array.from({ length: 10 }, () => [false, false, false, false]),
+    marathonTimer: null,
+    marathonTimeRemaining: 750,
+    marathonStartTime: null,
+    marathonTotalElapsedSec: 0,
   };
 
   // ---- Storage ----
@@ -59,6 +67,8 @@ const app = (() => {
         if (!state.user.customTexts) state.user.customTexts = [];
         if (!state.user.schulteBestTime) state.user.schulteBestTime = { 3: null, 4: null, 5: null };
         if (state.user.schulteCompleted === undefined) state.user.schulteCompleted = 0;
+        if (state.user.marathonCompleted === undefined) state.user.marathonCompleted = 0;
+        if (state.user.marathonBestNet === undefined) state.user.marathonBestNet = 0;
         return true;
       }
     } catch (e) {}
@@ -88,6 +98,8 @@ const app = (() => {
       customTexts: [],
       schulteBestTime: { 3: null, 4: null, 5: null },
       schulteCompleted: 0,
+      marathonCompleted: 0,
+      marathonBestNet: 0,
     };
   }
 
@@ -1535,6 +1547,7 @@ const app = (() => {
     if (state.lgsTimer) { clearInterval(state.lgsTimer); state.lgsTimer = null; }
     if (state.bionicTimer) { clearInterval(state.bionicTimer); state.bionicTimer = null; }
     if (state.schulteTimerInterval) { clearInterval(state.schulteTimerInterval); state.schulteTimerInterval = null; }
+    if (state.marathonTimer) { clearInterval(state.marathonTimer); state.marathonTimer = null; }
     state.schulteIsRunning = false;
     stopMetronomeLoop();
     releaseWakeLock();
@@ -2396,6 +2409,441 @@ const app = (() => {
     }
   }
 
+  // ============================================================
+  // ---- LGS Paragraph Marathon & Mock Exam Simulator Module ----
+  // ============================================================
+
+  function openMarathonIntro() {
+    stopAllExercises();
+    showScreen('screen-lgs-marathon-intro');
+  }
+
+  function startLGSMarathon() {
+    stopAllExercises();
+    requestWakeLock();
+
+    state.marathonIndex = 0;
+    state.marathonAnswers = new Array(10).fill(null);
+    state.marathonFlags = new Array(10).fill(false);
+    state.marathonEliminated = Array.from({ length: 10 }, () => [false, false, false, false]);
+    state.marathonTimeRemaining = 750; // 12.5 minutes (750s)
+    state.marathonStartTime = Date.now();
+    state.marathonTotalElapsedSec = 0;
+
+    // Start Metronome if enabled
+    if (state.metronomeEnabled) {
+      startMetronomeLoop();
+    }
+
+    renderMarathonQuestion(0);
+    updateMarathonTimerDisplay();
+
+    state.marathonTimer = setInterval(tickMarathonTimer, 1000);
+    showScreen('screen-lgs-marathon');
+  }
+
+  function tickMarathonTimer() {
+    if (state.marathonTimeRemaining > 0) {
+      state.marathonTimeRemaining--;
+      updateMarathonTimerDisplay();
+    } else {
+      // Time is up!
+      if (state.marathonTimer) {
+        clearInterval(state.marathonTimer);
+        state.marathonTimer = null;
+      }
+      playTone(300, 'square', 0.5);
+      alert('⏰ Süre doldu! 12.5 dakikalık sınav süreniz sona erdi. Cevaplarınız değerlendiriliyor...');
+      finishLGSMarathon(true);
+    }
+  }
+
+  function updateMarathonTimerDisplay() {
+    const rem = Math.max(0, state.marathonTimeRemaining);
+    const m = Math.floor(rem / 60);
+    const s = rem % 60;
+    const str = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+
+    const textEl = $('marathon-timer-text');
+    if (textEl) textEl.textContent = str;
+
+    const pillEl = $('marathon-timer-pill');
+    if (pillEl) {
+      if (rem <= 120) {
+        pillEl.classList.add('warning');
+      } else {
+        pillEl.classList.remove('warning');
+      }
+    }
+  }
+
+  function renderMarathonPalette() {
+    const palette = $('marathon-palette');
+    if (!palette) return;
+    palette.innerHTML = '';
+
+    for (let i = 0; i < 10; i++) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'palette-btn';
+      if (i === state.marathonIndex) btn.classList.add('active');
+      if (state.marathonAnswers[i] !== null) btn.classList.add('answered');
+      if (state.marathonFlags[i]) btn.classList.add('flagged');
+
+      btn.textContent = (i + 1);
+      btn.title = `Soru ${i + 1}${state.marathonFlags[i] ? ' (İşaretli)' : ''}${state.marathonAnswers[i] !== null ? ' (Cevaplandı)' : ''}`;
+      btn.onclick = () => jumpToMarathonQuestion(i);
+      palette.appendChild(btn);
+    }
+  }
+
+  function renderMarathonQuestion(idx) {
+    if (typeof LGS_MARATHON_QUESTIONS === 'undefined' || !LGS_MARATHON_QUESTIONS.length) return;
+    idx = Math.max(0, Math.min(LGS_MARATHON_QUESTIONS.length - 1, idx));
+    state.marathonIndex = idx;
+
+    const q = LGS_MARATHON_QUESTIONS[idx];
+
+    // HUD Title & Badges
+    const titleEl = $('marathon-hud-title');
+    if (titleEl) titleEl.textContent = `Soru ${idx + 1} / ${LGS_MARATHON_QUESTIONS.length}`;
+
+    const badgeEl = $('marathon-qtype-badge');
+    if (badgeEl) badgeEl.textContent = q.badge || q.type || '🎯 Paragraf';
+
+    // Flag button
+    const isFlagged = state.marathonFlags[idx];
+    const flagBtn = $('marathon-flag-btn');
+    const flagText = $('marathon-flag-text');
+    if (flagBtn) flagBtn.classList.toggle('active', isFlagged);
+    if (flagText) flagText.textContent = isFlagged ? 'İşaretli 🚩' : 'Soruyu İşaretle';
+
+    // Passage & Prompt
+    const passageEl = $('marathon-passage');
+    if (passageEl) passageEl.innerHTML = q.passage.replace(/\n\n/g, '<br><br>').replace(/\n/g, '<br>');
+
+    const promptEl = $('marathon-prompt');
+    if (promptEl) promptEl.innerHTML = `<strong>${q.question}</strong>`;
+
+    // Options
+    const optList = $('marathon-options-list');
+    if (optList) {
+      optList.innerHTML = '';
+      const letters = ['A', 'B', 'C', 'D'];
+      const userAns = state.marathonAnswers[idx];
+
+      q.options.forEach((optText, oIdx) => {
+        const isSelected = userAns === oIdx;
+        const isEliminated = state.marathonEliminated[idx][oIdx];
+
+        const row = document.createElement('div');
+        row.className = `marathon-opt-btn ${isSelected ? 'selected' : ''} ${isEliminated ? 'eliminated' : ''}`;
+        row.onclick = () => selectMarathonOption(oIdx);
+
+        row.innerHTML = `
+          <div class="opt-prefix">${letters[oIdx]}</div>
+          <div class="opt-body">${optText}</div>
+          <button type="button" class="btn-eliminate ${isEliminated ? 'active' : ''}" title="${isEliminated ? 'Elemeyi Kaldır' : 'Şıkkı Ele'}" onclick="event.stopPropagation(); app.toggleEliminateOption(${oIdx})">
+            ${isEliminated ? '↩' : '✖'}
+          </button>
+        `;
+
+        optList.appendChild(row);
+      });
+    }
+
+    // Prev / Next button states
+    const prevBtn = $('marathon-prev-btn');
+    if (prevBtn) {
+      prevBtn.disabled = (idx === 0);
+      prevBtn.style.opacity = idx === 0 ? '0.4' : '1';
+    }
+
+    const nextBtn = $('marathon-next-btn');
+    if (nextBtn) {
+      if (idx === LGS_MARATHON_QUESTIONS.length - 1) {
+        nextBtn.innerHTML = '🏁 Sınavı Bitir';
+        nextBtn.className = 'btn btn-primary';
+        nextBtn.onclick = () => finishMarathonPrompt();
+      } else {
+        nextBtn.innerHTML = 'Sonraki Soru ➡️';
+        nextBtn.className = 'btn btn-primary';
+        nextBtn.onclick = () => nextMarathonQuestion();
+      }
+    }
+
+    renderMarathonPalette();
+
+    // Scroll workspace to top
+    const workspace = document.querySelector('.marathon-workspace');
+    if (workspace) workspace.scrollTop = 0;
+  }
+
+  function selectMarathonOption(optIdx) {
+    const idx = state.marathonIndex;
+    if (state.marathonAnswers[idx] === optIdx) {
+      // Unselect
+      state.marathonAnswers[idx] = null;
+    } else {
+      state.marathonAnswers[idx] = optIdx;
+      // If user marks an eliminated option, un-eliminate it
+      if (state.marathonEliminated[idx][optIdx]) {
+        state.marathonEliminated[idx][optIdx] = false;
+      }
+      playTone(580, 'sine', 0.08);
+      triggerVibrate(20);
+    }
+    renderMarathonQuestion(idx);
+  }
+
+  function toggleEliminateOption(optIdx) {
+    const idx = state.marathonIndex;
+    const current = state.marathonEliminated[idx][optIdx];
+    state.marathonEliminated[idx][optIdx] = !current;
+    
+    // If was selected and now eliminated, unselect
+    if (!current && state.marathonAnswers[idx] === optIdx) {
+      state.marathonAnswers[idx] = null;
+    }
+    playTone(280, 'triangle', 0.05);
+    triggerVibrate(15);
+    renderMarathonQuestion(idx);
+  }
+
+  function toggleQuestionFlag() {
+    const idx = state.marathonIndex;
+    state.marathonFlags[idx] = !state.marathonFlags[idx];
+    playTone(720, 'sine', 0.07);
+    triggerVibrate(25);
+    renderMarathonQuestion(idx);
+  }
+
+  function jumpToMarathonQuestion(idx) {
+    renderMarathonQuestion(idx);
+  }
+
+  function prevMarathonQuestion() {
+    if (state.marathonIndex > 0) {
+      renderMarathonQuestion(state.marathonIndex - 1);
+    }
+  }
+
+  function nextMarathonQuestion() {
+    if (state.marathonIndex < LGS_MARATHON_QUESTIONS.length - 1) {
+      renderMarathonQuestion(state.marathonIndex + 1);
+    } else {
+      finishMarathonPrompt();
+    }
+  }
+
+  function finishMarathonPrompt() {
+    const unanswered = state.marathonAnswers.filter(a => a === null).length;
+    let msg = '';
+    if (unanswered > 0) {
+      msg = `Henüz yanıtlamadığınız ${unanswered} adet boş soru var.\n\nSınavı bitirmek ve sonuç raporunuzu görmek istiyor musunuz?`;
+    } else {
+      msg = `Tüm soruları yanıtladınız!\n\nLGS Paragraf Maratonunu tamamlamak ve detaylı karnenizi görmek istiyor musunuz?`;
+    }
+
+    if (confirm(msg)) {
+      finishLGSMarathon(false);
+    }
+  }
+
+  function exitMarathonPrompt() {
+    if (confirm('Maratondan çıkmak istediğinize emin misiniz? Devam eden sınavınız ve ilerlemeniz kaydedilmeyecek.')) {
+      stopAllExercises();
+      goToDashboard();
+    }
+  }
+
+  function finishLGSMarathon(isTimeUp = false) {
+    stopAllExercises();
+
+    const elapsed = Math.min(750, Math.max(15, Math.round((Date.now() - (state.marathonStartTime || Date.now())) / 1000)));
+    state.marathonTotalElapsedSec = elapsed;
+
+    let correctCount = 0;
+    let wrongCount = 0;
+    let blankCount = 0;
+
+    LGS_MARATHON_QUESTIONS.forEach((q, i) => {
+      const ans = state.marathonAnswers[i];
+      if (ans === null) {
+        blankCount++;
+      } else if (ans === q.correct) {
+        correctCount++;
+      } else {
+        wrongCount++;
+      }
+    });
+
+    // LGS 3 wrong = 1 right rule:
+    const rawNet = correctCount - (wrongCount / 3);
+    const net = Math.max(0, Math.round(rawNet * 100) / 100);
+
+    // Speed metrics
+    const avgSec = Math.round(elapsed / 10);
+    const mebTargetSec = 750; // 10 * 75s
+    const savedSec = Math.max(0, mebTargetSec - elapsed);
+    const savedMin = Math.floor(savedSec / 60);
+    const savedRemSec = savedSec % 60;
+
+    // XP calculation: 25 base + (net * 6) + time bonus
+    let xp = 25 + Math.round(net * 6);
+    if (net >= 8) xp += 20;
+    addXP(xp);
+
+    // Save in user profile
+    if (!state.user.marathonCompleted) state.user.marathonCompleted = 0;
+    state.user.marathonCompleted++;
+    if (!state.user.marathonBestNet || net > state.user.marathonBestNet) {
+      state.user.marathonBestNet = net;
+    }
+
+    // Save in exercise history
+    const estWpm = Math.round((1450 / (elapsed / 60))); // ~1450 total words across 10 passages
+    const compPct = Math.round((correctCount / 10) * 100);
+    const effective = Math.round(estWpm * (compPct / 100));
+
+    state.user.history.push({
+      date: new Date().toISOString(),
+      mode: 'lgs-maraton',
+      wpm: estWpm,
+      comprehension: compPct,
+      effectiveWPM: effective,
+      net: net,
+      elapsedSec: elapsed,
+    });
+
+    // Badge Check: Marathon Hero (>= 8.0 Net)
+    if (net >= 8.0 && !state.user.badges.includes('marathon_hero')) {
+      state.user.badges.push('marathon_hero');
+      state.newBadges.push('marathon_hero');
+    }
+
+    saveUser();
+
+    // Fill Results UI
+    let emoji = '🏆';
+    let title = 'Harika Bir Sınav Çıkardın!';
+    if (net >= 8.0) {
+      emoji = '🏆';
+      title = 'Efsanevi Performans! LGS Şampiyonu!';
+    } else if (net >= 6.0) {
+      emoji = '🎯';
+      title = 'Güçlü Bir Net! Harika Odaklanma!';
+    } else if (net >= 4.0) {
+      emoji = '📈';
+      title = 'Güzel Deneme! Netlerin Yükseliyor!';
+    } else {
+      emoji = '💪';
+      title = 'İyi Bir Antrenman! Hızlanmaya Devam!';
+    }
+
+    if ($('marathon-res-emoji')) $('marathon-res-emoji').textContent = emoji;
+    if ($('marathon-res-title')) $('marathon-res-title').textContent = title;
+    if ($('marathon-res-sub')) {
+      $('marathon-res-sub').textContent = `${isTimeUp ? 'Süre doldu! ' : ''}10 soruluk LGS Paragraf Maratonunu başarıyla tamamladın (+${xp} XP kazandın).`;
+    }
+
+    if ($('marathon-stat-correct')) $('marathon-stat-correct').textContent = correctCount;
+    if ($('marathon-stat-wrong')) $('marathon-stat-wrong').textContent = wrongCount;
+    if ($('marathon-stat-net')) $('marathon-stat-net').textContent = net.toFixed(2);
+    
+    const elapsedM = Math.floor(elapsed / 60);
+    const elapsedS = elapsed % 60;
+    if ($('marathon-stat-time')) {
+      $('marathon-stat-time').textContent = `${elapsedM.toString().padStart(2, '0')}:${elapsedS.toString().padStart(2, '0')}`;
+    }
+
+    if ($('marathon-speed-title')) {
+      $('marathon-speed-title').textContent = `Soru Başına Ortalama: ${avgSec} sn`;
+    }
+
+    if ($('marathon-speed-desc')) {
+      if (savedSec > 0) {
+        $('marathon-speed-desc').innerHTML = `MEB LGS standart süresine (75 sn) göre tam <strong>${savedMin} dakika ${savedRemSec} saniye</strong> kazandın!`;
+      } else {
+        $('marathon-speed-desc').innerHTML = `Sınavı süresi içinde bitirdin. Düzenli pratikle soru başına süreni 45 saniyeye indirebilirsin!`;
+      }
+    }
+
+    // Render Solutions Review List
+    renderMarathonReviewList();
+
+    // Celebration sounds
+    if (net >= 6) {
+      soundCelebration();
+    } else {
+      soundSuccess();
+    }
+    triggerVibrate([60, 40, 100]);
+
+    // Show Results Screen
+    showScreen('screen-lgs-marathon-results');
+  }
+
+  function renderMarathonReviewList() {
+    const list = $('marathon-review-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const letters = ['A', 'B', 'C', 'D'];
+
+    LGS_MARATHON_QUESTIONS.forEach((q, i) => {
+      const userAns = state.marathonAnswers[i];
+      const isCorrect = userAns === q.correct;
+      const isBlank = userAns === null;
+
+      let statusBadge = '';
+      if (isCorrect) {
+        statusBadge = '<span class="review-status-pill correct">✅ Doğru (+1 Net)</span>';
+      } else if (isBlank) {
+        statusBadge = '<span class="review-status-pill blank">⚪ Boş (0 Net)</span>';
+      } else {
+        statusBadge = '<span class="review-status-pill wrong">❌ Yanlış (-0.33 Net)</span>';
+      }
+
+      const card = document.createElement('div');
+      card.className = `marathon-review-card ${isCorrect ? 'correct' : (isBlank ? 'blank' : 'wrong')}`;
+
+      const userAnsText = isBlank
+        ? '<span style="color:#64748B; font-style:italic;">Cevap verilmedi (Boş)</span>'
+        : `<strong>${letters[userAns]})</strong> ${q.options[userAns]}`;
+
+      const correctAnsText = `<strong>${letters[q.correct]})</strong> ${q.options[q.correct]}`;
+
+      card.innerHTML = `
+        <div class="review-header">
+          <div>
+            <div class="review-qnum">SORU ${i + 1} · ${q.badge || q.type}</div>
+            <h4 class="review-qtitle">${q.title}</h4>
+          </div>
+          ${statusBadge}
+        </div>
+
+        <div class="review-answers-box">
+          <div class="review-ans-row">
+            <span class="label">Senin Cevabın:</span>
+            <span class="val ${isCorrect ? 'text-success' : (isBlank ? '' : 'text-danger')}">${userAnsText}</span>
+          </div>
+          <div class="review-ans-row">
+            <span class="label">Doğru Cevap:</span>
+            <span class="val text-success">${correctAnsText}</span>
+          </div>
+        </div>
+
+        <div class="review-explanation">
+          <div class="expl-head">💡 MEB Çözüm Analizi:</div>
+          <p>${q.explanation}</p>
+        </div>
+      `;
+
+      list.appendChild(card);
+    });
+  }
+
   // ---- Public API ----
   return {
     init,
@@ -2450,6 +2898,18 @@ const app = (() => {
     updateMetronomeBPM,
     setMetronomeTone,
     testMetronomeClick,
+    openMarathonIntro,
+    startLGSMarathon,
+    renderMarathonQuestion,
+    selectMarathonOption,
+    toggleEliminateOption,
+    toggleQuestionFlag,
+    jumpToMarathonQuestion,
+    prevMarathonQuestion,
+    nextMarathonQuestion,
+    finishMarathonPrompt,
+    exitMarathonPrompt,
+    finishLGSMarathon,
   };
 })();
 
